@@ -286,6 +286,31 @@ def InsertSkip : Pass<"torch-insert-skip", "func::FuncOp"> {
   }];
 }
 
+def InsertSepraConv : Pass<"torch-insert-sepra-conv-layer", "func::FuncOp"> {
+  let summary = "insert a separable convolution";
+  let constructor = [{
+    mlir::torch::Torch::createInsertSepraConvPass(/*layer=*/1)
+  }];
+  let description = [{
+  }];
+  let options = [
+    Option<"layer", "layer", "int", "1", "layer to widen.">
+  ];
+}
+
+def BranchLayer : Pass<"torch-branch-layer", "func::FuncOp"> {
+  let summary = "Compute convolution with different number of kernels";
+  let constructor = [{
+    mlir::torch::Torch::createBranchLayerPass()
+  }];
+  let description = [{
+  }];
+  let options = [
+    /*Option<"layer", "layer", "int", "1", "layer to widen.">,
+    Option<"branch", "branch", "int", "2", "number of branch.">*/
+  ];
+}
+
 // AntiInsertSkipPass
 def AntiInsertSkip : Pass<"torch-anti-insert-skip", "func::FuncOp"> {
   let summary = "Delete the skip(convolution)";
@@ -315,6 +340,17 @@ def AntiInsertConv : Pass<"torch-anti-insert-conv", "func::FuncOp"> {
   let constructor = [{
     mlir::torch::Torch::createAntiInsertConvPass()
   }];
+}
+
+def ObfuscateRNN : Pass<"torch-obfuscate-rnn", "func::FuncOp"> {
+  let summary = "Insert obfuscate in RNN cell";
+  let constructor = [{
+    mlir::torch::Torch::createObfuscateRNNPass(/*obfuscation*/"")
+  }];
+  let options = [
+    Option<"obfuscation", "obfuscation", "std::string", /*default=*/"",
+           "obfuscation to apply: valueSplit, maskSplit">
+  ];
   let description = [{
   }];
 }

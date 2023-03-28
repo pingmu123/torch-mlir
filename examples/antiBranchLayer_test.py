@@ -5,10 +5,9 @@ import torch_mlir
 from torch_mlir_e2e_test.linalg_on_tensors_backends import refbackend
 
 
-class LeNet(nn.Module):
+class LeNet5(nn.Module):
     def __init__(self):
-        super().__init__()
-        torch.manual_seed(2)
+        super(LeNet5, self).__init__()
         # 1 input image channel, 6 output channels, 5x5 square convolution
         # kernel
         self.conv1 = nn.Conv2d(1, 6, 5)
@@ -17,22 +16,21 @@ class LeNet(nn.Module):
         self.fc1 = nn.Linear(16 * 4 * 4, 120)  # 5*5 from image dimension
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
-        self.train(False)
 
     def forward(self, x):
         # input shape is 1x1x28x28
         # Max pooling over a (2, 2) window, if use default stride, error will happen
         x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2), stride=(2, 2))
         x = F.max_pool2d(F.relu(self.conv2(x)), (2, 2), stride=(2, 2))
-        # flatten all dimensions except the batch dimension
-        x = torch.flatten(x, 1)
+        x = torch.flatten(x, 1)  # flatten all dimensions except the batch dimension
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
 
 
-net = LeNet()
+net = LeNet5()
+net.eval()
 print(net)
 
 # compile to torch mlir
@@ -43,36 +41,33 @@ print("================")
 module = torch_mlir.compile(net, torch.ones(1, 1, 28, 28), output_type="torch")
 print(module.operation.get_asm(large_elements_limit=10))
 
-# print("================")
-# print("after WidenConvLayer pass")
-# print("================")
-# torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-#     module,
-#     "builtin.module(func.func(torch-widen-conv-layer))",
-#     "WidenConvLayer",
-# )
-# print(module.operation.get_asm(large_elements_limit=10))
 
-# print("================")
-# print("after InsertSkip pass")
-# print("================")
-# torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-#     module,
-#     "builtin.module(func.func(torch-insert-skip))",
-#     "InsertSkip",
-# )
-# print(module.operation.get_asm(large_elements_limit=10))
-
+# begin
 print("================")
-print("after InsertConv pass")
+print("after BranchLayer pass")
 print("================")
 torch_mlir.compiler_utils.run_pipeline_with_repro_report(
     module,
-    "builtin.module(func.func(torch-insert-conv{number=5}))",
-    "InsertSkip",
+    "builtin.module(func.func(torch-branch-layer))",
+    "BranchLayer",
 )
 print(module.operation.get_asm(large_elements_limit=10))
+# end
 
+# # begin
+# print("================")
+# print("after AntiDummyAddition pass")
+# print("================")
+# torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#     module,
+#     "builtin.module(func.func(torch-anti-dummy-addition))",
+#     "AntiDummyAddition",
+# )
+# print(module.operation.get_asm(large_elements_limit=10))
+# # end
+
+
+# lowering and run
 print("================")
 print("after lower to linalg")
 print("================")
@@ -96,9 +91,9 @@ print("output:")
 print(out1)
 print(out2)
 
-module_origin = torch_mlir.compile(
-    net, torch.ones(1, 1, 28, 28), output_type="linalg-on-tensors"
-)
+
+# origin
+module_origin = torch_mlir.compile(net, torch.ones(1, 1, 28, 28), output_type="linalg-on-tensors")
 jit_func_origin = backend.load(backend.compile(module_origin)).forward
 out1_origin = jit_func_origin(torch.ones(1, 1, 28, 28).numpy())
 out2_origin = jit_func_origin(torch.zeros(1, 1, 28, 28).numpy())
@@ -106,6 +101,8 @@ print("origin output:")
 print(out1_origin)
 print(out2_origin)
 
+
+# compare
 print("diffs:")
 print(out1 - out1_origin)
 print(out2 - out2_origin)

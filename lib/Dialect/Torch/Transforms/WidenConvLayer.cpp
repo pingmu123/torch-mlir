@@ -166,4 +166,3 @@ std::unique_ptr<OperationPass<func::FuncOp>>
 mlir::torch::Torch::createWidenConvLayerPass() {
   return std::make_unique<WidenConvLayerPass>();
 }
-

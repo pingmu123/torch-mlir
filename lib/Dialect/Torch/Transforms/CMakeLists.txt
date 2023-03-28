@@ -4,6 +4,9 @@ add_mlir_library(TorchMLIRTorchPasses
   WidenConvLayer.cpp
   InsertSkip.cpp
   InsertConvs.cpp
+  BranchLayer.cpp
+  InsertSepraConv.cpp
+  ObfuscateRNN.cpp
   DropAbstractInterpCalculations.cpp
   EraseModuleInitializer.cpp
   Passes.cpp
@@ -27,6 +30,8 @@ add_mlir_library(TorchMLIRTorchPasses
   AntiInsertSkip.cpp
   AntiWidenConvLayer.cpp
   AntiInsertConvs.cpp
+  BranchLayer.cpp
+  InsertSepraConv.cpp
 
   ADDITIONAL_HEADER_DIRS
   ${PROJECT_SOURCE_DIR}/include/torch-mlir/Dialect/Torch/Transforms
