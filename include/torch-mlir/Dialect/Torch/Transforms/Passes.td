@@ -246,11 +246,39 @@ def WidenConvLayer : Pass<"torch-widen-conv-layer", "func::FuncOp"> {
   let description = [{
   }];
 }
+// DummyAdditionPass
+def DummyAdditionPass : Pass<"torch-dummy-addition", "func::FuncOp"> {
+  let summary = "Insert a dummy addition";
+  let constructor = [{
+    mlir::torch::Torch::createDummyAdditionPass()
+  }];
+  let description = [{
+  }];
+}
+
+// AntiDummyAdditionPass
+def AntiDummyAdditionPass : Pass<"torch-anti-dummy-addition", "func::FuncOp"> {
+  let summary = "Delete the dummy addition";
+  let constructor = [{
+    mlir::torch::Torch::createAntiDummyAdditionPass()
+  }];
+  let description = [{
+  }];
+}
 
 def InsertSkip : Pass<"torch-insert-skip", "func::FuncOp"> {
   let summary = "Insert a skip with a convolution";
   let constructor = [{
     mlir::torch::Torch::createInsertSkipPass()
+  }];
+  let description = [{
+  }];
+}
+
+def AntiInsertSkip : Pass<"torch-anti-insert-skip", "func::FuncOp"> {
+  let summary = "Delete the skip(convolution)";
+  let constructor = [{
+    mlir::torch::Torch::createAntiInsertSkipPass()
   }];
   let description = [{
   }];
