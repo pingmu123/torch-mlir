@@ -101,10 +101,13 @@ createDecomposeComplexOpsPass(ArrayRef<std::string> legalOps);
 // create DummyAdditionPass
 std::unique_ptr<OperationPass<func::FuncOp>> createDummyAdditionPass();
 
-//create AntiDummyAdditionPass
+// create AntiDummyAdditionPass
 std::unique_ptr<OperationPass<func::FuncOp>> createAntiDummyAdditionPass();
 
 std::unique_ptr<OperationPass<func::FuncOp>> createWidenConvLayerPass();
+
+// create AntiWidenConvLayerPass
+std::unique_ptr<OperationPass<func::FuncOp>> createAntiWidenConvLayerPass();
 
 std::unique_ptr<OperationPass<func::FuncOp>> createInsertSkipPass();
 
@@ -112,6 +115,9 @@ std::unique_ptr<OperationPass<func::FuncOp>> createInsertSkipPass();
 std::unique_ptr<OperationPass<func::FuncOp>> createAntiInsertSkipPass();
 
 std::unique_ptr<OperationPass<func::FuncOp>> createInsertConvPass(int number);
+
+// create AntiInsertConvPass
+std::unique_ptr<OperationPass<func::FuncOp>> createAntiInsertConvPass();
 
 std::unique_ptr<OperationPass<ModuleOp>> createPreprocessShapeLibraryPass();
 

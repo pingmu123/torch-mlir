@@ -246,6 +246,17 @@ def WidenConvLayer : Pass<"torch-widen-conv-layer", "func::FuncOp"> {
   let description = [{
   }];
 }
+
+// AntiWidenConvLayerPass
+def AntiWidenConvLayer : Pass<"torch-anti-widen-conv-layer", "func::FuncOp"> {
+  let summary = "Delete the widen convolution operations";
+  let constructor = [{
+    mlir::torch::Torch::createAntiWidenConvLayerPass()
+  }];
+  let description = [{
+  }];
+}
+
 // DummyAdditionPass
 def DummyAdditionPass : Pass<"torch-dummy-addition", "func::FuncOp"> {
   let summary = "Insert a dummy addition";
@@ -275,6 +286,7 @@ def InsertSkip : Pass<"torch-insert-skip", "func::FuncOp"> {
   }];
 }
 
+// AntiInsertSkipPass
 def AntiInsertSkip : Pass<"torch-anti-insert-skip", "func::FuncOp"> {
   let summary = "Delete the skip(convolution)";
   let constructor = [{
@@ -295,6 +307,16 @@ def InsertConv : Pass<"torch-insert-conv", "func::FuncOp"> {
     Option<"number", "number", "int", /*default=*/"1",
            "Number of convolutions to insert.">
   ];
+}
+
+// AntiInsertConvPass
+def AntiInsertConv : Pass<"torch-anti-insert-conv", "func::FuncOp"> {
+  let summary = "Delete equivalent convolutions";
+  let constructor = [{
+    mlir::torch::Torch::createAntiInsertConvPass()
+  }];
+  let description = [{
+  }];
 }
 
 def ReifyShapeCalculations : Pass<"torch-reify-shape-calculations", "ModuleOp"> {

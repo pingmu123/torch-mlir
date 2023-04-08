@@ -31,7 +31,7 @@ static void antiInsertSkip(MLIRContext *context, Operation *f) {
 
   // anti insert skip(conv)
 
-  f->walk([&](mlir::Operation *op){ // find all AddTensorOp
+  f->walk([&](mlir::Operation *op){ // find all ConvolutionOp
     if(dyn_cast<AtenConvolutionOp>(op)){ 
       ConvOpWorklist.insert(op);
     }
@@ -53,6 +53,7 @@ static void antiInsertSkip(MLIRContext *context, Operation *f) {
         break;
       }
     }
+    // TODO： bias parameter is false? always not, it will cause error while open.
     for (size_t i = 0; i < opNum_2Data.size(); ++i) {
       if (opNum_2Data[i] != 0) {
         isEqual = false;
@@ -63,25 +64,31 @@ static void antiInsertSkip(MLIRContext *context, Operation *f) {
       // handle the Ops related to this convOp： it is always an AddTensorOp
       auto convOp_userOps = convOp->getUses(); // get OpOperand
       auto addTensorOp = convOp_userOps.begin()->getOwner(); // get addTensorOp
+
+
       // handle the Ops related to this addTensorOp
       auto addTensorOp_userOps = addTensorOp->getUses();
-      for (auto it=addTensorOp_userOps.begin();it!=addTensorOp_userOps.end();it++){
+      auto it=addTensorOp_userOps.begin();
+      while (it!=addTensorOp_userOps.end()){
         auto tmpOp=it->getOwner(); // get Op 
-        tmpOp->replaceUsesOfWith(tmpOp->getOperand(0), tmpOp->getOperand(0).getDefiningOp()->getOperand(0));
-        
-        auto preFloat1Op = addTensorOp->getOperand(2).getDefiningOp(); // ConstantFloatOp: we can delete it directly here
-      
-        addTensorOp->erase();
-        preFloat1Op->erase();
-
-        auto skipConvOpNum1Op=opNum_1.getDefiningOp();
-        auto skipConvOpNum2Op=opNum_2.getDefiningOp();
-
-        convOp->erase();
-        skipConvOpNum1Op->erase();
-        skipConvOpNum2Op->erase();
+        llvm::outs() << *tmpOp << "\n";
+        tmpOp->replaceUsesOfWith(tmpOp->getOperand(0), addTensorOp->getOperand(0)); // it becomes addTensorOp->getOperand(0)_userOps
+        addTensorOp_userOps = addTensorOp->getUses();
+        it=addTensorOp_userOps.begin(); // the next Op which use addTensorOp
 
       } // end of handle the Ops related to this addTensorOp
+     
+      auto preFloat1Op = addTensorOp->getOperand(2).getDefiningOp(); // ConstantFloatOp: we can delete it directly here
+      
+      addTensorOp->erase();
+      preFloat1Op->erase();
+
+      auto skipConvOpNum1Op=opNum_1.getDefiningOp();
+      auto skipConvOpNum2Op=opNum_2.getDefiningOp();
+
+      convOp->erase();
+      skipConvOpNum1Op->erase();
+      skipConvOpNum2Op->erase();
 
     } // end of handle the Ops related to this convOp
   }

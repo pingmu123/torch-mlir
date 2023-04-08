@@ -33,7 +33,6 @@ net = LeNet5()
 net.eval()
 print(net)
 
-# Add DummyAddition
 # compile to torch mlir
 # NCHW layout in pytorch
 print("================")

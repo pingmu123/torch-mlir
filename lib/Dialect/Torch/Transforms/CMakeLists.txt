@@ -25,6 +25,8 @@ add_mlir_library(TorchMLIRTorchPasses
   DummyAddition.cpp
   AntiDummyAddition.cpp
   AntiInsertSkip.cpp
+  AntiWidenConvLayer.cpp
+  AntiInsertConvs.cpp
 
   ADDITIONAL_HEADER_DIRS
   ${PROJECT_SOURCE_DIR}/include/torch-mlir/Dialect/Torch/Transforms

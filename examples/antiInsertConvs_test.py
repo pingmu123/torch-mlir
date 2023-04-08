@@ -44,24 +44,24 @@ print(module.operation.get_asm(large_elements_limit=10))
 
 # begin
 print("================")
-print("after InsertSkip pass")
+print("after InsertConvs pass")
 print("================")
 torch_mlir.compiler_utils.run_pipeline_with_repro_report(
     module,
-    "builtin.module(func.func(torch-insert-skip))",
-    "InsertSkip",
+    "builtin.module(func.func(torch-insert-conv))",
+    "InsertConvs",
 )
 print(module.operation.get_asm(large_elements_limit=10))
 # end
 
 # begin
 print("================")
-print("after AntiInsertSkip pass")
+print("after AntiInsertConvs pass")
 print("================")
 torch_mlir.compiler_utils.run_pipeline_with_repro_report(
     module,
-    "builtin.module(func.func(torch-anti-insert-skip))",
-    "AntiInsertSkip",
+    "builtin.module(func.func(torch-anti-insert-conv))",
+    "AntiInsertConvs",
 )
 print(module.operation.get_asm(large_elements_limit=10))
 # end

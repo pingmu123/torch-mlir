@@ -41,25 +41,25 @@ print("================")
 module = torch_mlir.compile(net, torch.ones(1, 1, 28, 28), output_type="torch")
 print(module.operation.get_asm(large_elements_limit=10))
 
-print("================")
-print("after WidenConvLayer pass")
-print("================")
-torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-    module,
-    "builtin.module(func.func(torch-widen-conv-layer))",
-    "WidenConvLayer",
-)
-print(module.operation.get_asm(large_elements_limit=10))
+# print("================")
+# print("after WidenConvLayer pass")
+# print("================")
+# torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#     module,
+#     "builtin.module(func.func(torch-widen-conv-layer))",
+#     "WidenConvLayer",
+# )
+# print(module.operation.get_asm(large_elements_limit=10))
 
-print("================")
-print("after InsertSkip pass")
-print("================")
-torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-    module,
-    "builtin.module(func.func(torch-insert-skip))",
-    "InsertSkip",
-)
-print(module.operation.get_asm(large_elements_limit=10))
+# print("================")
+# print("after InsertSkip pass")
+# print("================")
+# torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#     module,
+#     "builtin.module(func.func(torch-insert-skip))",
+#     "InsertSkip",
+# )
+# print(module.operation.get_asm(large_elements_limit=10))
 
 print("================")
 print("after InsertConv pass")

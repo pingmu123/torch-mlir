@@ -60,16 +60,21 @@ static void antiDummyAddition(MLIRContext *context, Operation *f) {
     if(isEqual){
       // handle the Ops related to this addTensorOp
       auto userOps = addTensorOp->getUses(); // get OpOperand(s)
-      for (auto it=userOps.begin();it!=userOps.end();it++){
+      auto it=userOps.begin();
+      while(it!=userOps.end()){
         auto tmpOp=it->getOwner();
         tmpOp->replaceUsesOfWith(tmpOp->getOperand(0), tmpOp->getOperand(0).getDefiningOp()->getOperand(0));
-        // process addTensorOp
-        auto preZeroTensorOp = addTensorOp.getOperand(1).getDefiningOp(); // ValueTensorLiteralOp
-        auto preFloat1Op = addTensorOp.getOperand(2).getDefiningOp(); // ConstantFloatOp
-        addTensorOp->erase();
-        preZeroTensorOp->erase();
-        preFloat1Op->erase();
+
+        userOps = addTensorOp->getUses(); 
+        it=userOps.begin(); // the next Op which use addTensorOp
       }
+
+      // process addTensorOp
+      auto preZeroTensorOp = addTensorOp.getOperand(1).getDefiningOp(); // ValueTensorLiteralOp
+      auto preFloat1Op = addTensorOp.getOperand(2).getDefiningOp(); // ConstantFloatOp
+      addTensorOp->erase();
+      preZeroTensorOp->erase();
+      preFloat1Op->erase();
     } // end of handle the Ops related to this addTensorOp
   }
 }
