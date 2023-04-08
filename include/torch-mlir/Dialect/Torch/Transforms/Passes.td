@@ -340,6 +340,7 @@ def AntiInsertConv : Pass<"torch-anti-insert-conv", "func::FuncOp"> {
   let constructor = [{
     mlir::torch::Torch::createAntiInsertConvPass()
   }];
+<<<<<<< HEAD
 }
 
 def ObfuscateRNN : Pass<"torch-obfuscate-rnn", "func::FuncOp"> {
@@ -351,6 +352,8 @@ def ObfuscateRNN : Pass<"torch-obfuscate-rnn", "func::FuncOp"> {
     Option<"obfuscation", "obfuscation", "std::string", /*default=*/"",
            "obfuscation to apply: valueSplit, maskSplit">
   ];
+=======
+>>>>>>> 16c3ab46 (update, add AntiWidenConvLayer, add AntiInsertConvs)
   let description = [{
   }];
 }
