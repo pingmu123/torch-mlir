@@ -33,6 +33,8 @@ add_mlir_library(TorchMLIRTorchPasses
   BranchLayer.cpp
   AntiBranchLayer.cpp
   InsertSepraConv.cpp
+  KernelWidening.cpp
+  AntiKernelWidening.cpp
 
   ADDITIONAL_HEADER_DIRS
   ${PROJECT_SOURCE_DIR}/include/torch-mlir/Dialect/Torch/Transforms

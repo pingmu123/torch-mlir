@@ -127,6 +127,12 @@ std::unique_ptr<OperationPass<func::FuncOp>> createBranchLayerPass();
 // create AntiBranchLayerPass
 std::unique_ptr<OperationPass<func::FuncOp>> createAntiBranchLayerPass();
 
+// create KernelWideningPass
+std::unique_ptr<OperationPass<func::FuncOp>> createKernelWideningPass();
+
+// create AntiKernelWideningPass
+std::unique_ptr<OperationPass<func::FuncOp>> createAntiKernelWideningPass();
+
 std::unique_ptr<OperationPass<func::FuncOp>> createInsertSepraConvPass(int layer);
 
 std::unique_ptr<OperationPass<ModuleOp>> createPreprocessShapeLibraryPass();

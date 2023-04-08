@@ -63,7 +63,7 @@ static void antiDummyAddition(MLIRContext *context, Operation *f) {
       auto it=userOps.begin();
       while(it!=userOps.end()){
         auto tmpOp=it->getOwner();
-        tmpOp->replaceUsesOfWith(tmpOp->getOperand(0),addTensorOp->getOperand(0));
+        tmpOp->replaceUsesOfWith(tmpOp->getOperand(0), addTensorOp->getOperand(0));
 
         userOps = addTensorOp->getUses(); 
         it=userOps.begin(); // the next Op which use addTensorOp

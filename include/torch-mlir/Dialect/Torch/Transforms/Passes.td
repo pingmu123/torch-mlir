@@ -356,6 +356,25 @@ def AntiInsertConv : Pass<"torch-anti-insert-conv", "func::FuncOp"> {
   }];
 }
 
+// KernelWideningPass
+def KernelWidening : Pass<"torch-kernel-widening", "func::FuncOp"> {
+  let summary = "Use zero to pad kernel";
+  let constructor = [{
+    mlir::torch::Torch::createKernelWideningPass()
+  }];
+  let description = [{
+  }];
+}
+
+// AntiKernelWideningPass
+def AntiKernelWidening : Pass<"torch-anti-kernel-widening", "func::FuncOp"> {
+  let summary = "Delete the zeroPadding of kernel";
+  let constructor = [{
+    mlir::torch::Torch::createAntiKernelWideningPass()
+  }];
+}
+
+
 def ObfuscateRNN : Pass<"torch-obfuscate-rnn", "func::FuncOp"> {
   let summary = "Insert obfuscate in RNN cell";
   let constructor = [{

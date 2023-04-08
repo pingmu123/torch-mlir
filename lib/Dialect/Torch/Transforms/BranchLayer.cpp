@@ -75,7 +75,7 @@ static void branchLayer(MLIRContext *context, Operation *f) {
   // create newOp
   llvm::SmallVector<Value, 16> convOpWorklist_2;
   int begin=0;
-  for(auto i=0;i<branch.size();i++){
+  for(auto i=0;i<(int)branch.size();i++){
     std::vector<float> subConvKernelData;
     std::vector<float> subConvBiasData;
     int begin1 = begin * kernelSize;
@@ -122,9 +122,11 @@ static void branchLayer(MLIRContext *context, Operation *f) {
   Value dim = rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(1));
   Value concatOp = rewriter.create<AtenCatOp>(loc, convOp->getResult(0).getType(), 
                                               tensorList, dim);
-  auto convKernelOp = convKernel.getDefiningOp(); 
+  auto convKernelOp = convKernel.getDefiningOp();
+  auto convBiasOp = convBias.getDefiningOp();
   rewriter.replaceOp(convOp, concatOp);
   convKernelOp->erase();
+  convBiasOp->erase();
 }
 
 namespace {

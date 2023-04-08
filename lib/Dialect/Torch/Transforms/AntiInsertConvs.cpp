@@ -45,7 +45,7 @@ static void antiInsertConv(MLIRContext *context, Operation *f) {
     Value convResult = convOp.getResult();
     // value convStride = convOp.getOperand(3);
 
-    Value convPadding = convOp.getOperand(4);
+    // Value convPadding = convOp.getOperand(4);
 
     auto convInputShape = convInput.getType().cast<ValueTensorType>().getSizes().vec();
     auto convKernelShape = convKernel.getType().cast<ValueTensorType>().getSizes().vec();
@@ -55,9 +55,9 @@ static void antiInsertConv(MLIRContext *context, Operation *f) {
         auto convKernelData = convKernel.getDefiningOp<ValueTensorLiteralOp>().getValue().getValues<float>();
         auto convBiasData = convBias.getDefiningOp<ValueTensorLiteralOp>().getValue().getValues<float>();
 
-        auto convPaddingDataOp = convPadding.getDefiningOp<PrimListConstructOp>();
+        /*auto convPaddingDataOp = convPadding.getDefiningOp<PrimListConstructOp>();
         int hPadding = convPaddingDataOp.getOperand(0).getDefiningOp<ConstantIntOp>().getValue().getSExtValue();
-        int wPadding = convPaddingDataOp.getOperand(1).getDefiningOp<ConstantIntOp>().getValue().getSExtValue();
+        int wPadding = convPaddingDataOp.getOperand(1).getDefiningOp<ConstantIntOp>().getValue().getSExtValue();*/
 
         // llvm::outs() << hPadding << ' ' << wPadding << "\n";
         
@@ -71,7 +71,9 @@ static void antiInsertConv(MLIRContext *context, Operation *f) {
             for(auto j=0;j<convKernelShape[1];j++){
                 auto base2 = base1 + j * convChannelSize;
                 for(auto k=0;k<convChannelSize;k++){
-                    if(j!=i || k != (hPadding * convKernelShape[3] + wPadding)){
+                    // if(j!=i || k != (hPadding * convKernelShape[3] + wPadding)){
+                    // Note: j!=i， inputChannel-wise
+                    if(j!=i || k != (convKernelShape[2]/2*convKernelShape[3] + convKernelShape[3]/2)){
                         if(convKernelData[base2+k]!=0.0){
                             isUnitConv = false;
                             break;
@@ -110,7 +112,7 @@ static void antiInsertConv(MLIRContext *context, Operation *f) {
 
             //     nextOp
 
-            // antiinsertConvsOp:
+            // antiInsertConvsOp:
             //     reluOp
             //     nextOp
 
@@ -176,9 +178,13 @@ static void antiInsertConv(MLIRContext *context, Operation *f) {
     }
   }
   // erase the ops which difficultly process in the process
+  OpWorklist.clear();
+  f->walk([&](mlir::Operation *op){ // all Ops
+      OpWorklist.insert(op);
+  });
   for(auto it_3=OpWorklist.begin();it_3!=OpWorklist.end();it_3++){
     auto op = *(it_3);
-    if(dyn_cast<ConstantIntOp>(op)){
+    if(isa<ConstantIntOp, PrimListConstructOp>(op)){
         auto usersOp = op->getUses();
         if(usersOp.begin()==usersOp.end()){
             op->erase();
