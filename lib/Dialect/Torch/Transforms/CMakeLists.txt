@@ -31,6 +31,7 @@ add_mlir_library(TorchMLIRTorchPasses
   AntiWidenConvLayer.cpp
   AntiInsertConvs.cpp
   BranchLayer.cpp
+  AntiBranchLayer.cpp
   InsertSepraConv.cpp
 
   ADDITIONAL_HEADER_DIRS

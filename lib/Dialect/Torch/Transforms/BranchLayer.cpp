@@ -25,7 +25,7 @@ using namespace mlir::torch;
 using namespace mlir::torch::Torch;
 
 static void branchLayer(MLIRContext *context, Operation *f) {
-  // this demo compute convolutions with branching layer  
+  // this demo Compute convolutions with kernel-wise
 
   llvm::SmallPtrSet<Operation *, 16> convOpWorklist;
   f->walk([&](Operation *op) {

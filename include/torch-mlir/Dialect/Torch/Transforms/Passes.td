@@ -298,8 +298,9 @@ def InsertSepraConv : Pass<"torch-insert-sepra-conv-layer", "func::FuncOp"> {
   ];
 }
 
+// BranchLayerPass();
 def BranchLayer : Pass<"torch-branch-layer", "func::FuncOp"> {
-  let summary = "Compute convolution with different number of kernels";
+  let summary = "Compute convolutions with kernel-wise";
   let constructor = [{
     mlir::torch::Torch::createBranchLayerPass()
   }];
@@ -311,6 +312,19 @@ def BranchLayer : Pass<"torch-branch-layer", "func::FuncOp"> {
   ];
 }
 
+// AntiBranchLayerPass();
+def AntiBranchLayer : Pass<"torch-anti-branch-layer", "func::FuncOp"> {
+  let summary = "Compute convolution with merging same size convolution Kernel";
+  let constructor = [{
+    mlir::torch::Torch::createAntiBranchLayerPass()
+  }];
+  let description = [{
+  }];
+  let options = [
+    /*Option<"layer", "layer", "int", "1", "layer to widen.">,
+    Option<"branch", "branch", "int", "2", "number of branch.">*/
+  ];
+}
 // AntiInsertSkipPass
 def AntiInsertSkip : Pass<"torch-anti-insert-skip", "func::FuncOp"> {
   let summary = "Delete the skip(convolution)";

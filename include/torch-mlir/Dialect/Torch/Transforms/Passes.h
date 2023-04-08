@@ -121,7 +121,11 @@ std::unique_ptr<OperationPass<func::FuncOp>> createAntiInsertConvPass();
 
 std::unique_ptr<OperationPass<func::FuncOp>> createObfuscateRNNPass(std::string obfuscation);
 
+// create BranchLayerPass
 std::unique_ptr<OperationPass<func::FuncOp>> createBranchLayerPass();
+
+// create AntiBranchLayerPass
+std::unique_ptr<OperationPass<func::FuncOp>> createAntiBranchLayerPass();
 
 std::unique_ptr<OperationPass<func::FuncOp>> createInsertSepraConvPass(int layer);
 
