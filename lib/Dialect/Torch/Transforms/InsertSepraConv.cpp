@@ -9,8 +9,8 @@
 
 #include "Common.h"
 
-// insert a skip for convolution
-static void InsertSkip(MLIRContext *context, Operation *f, int layer) {
+// insert a separable convolution
+static void InsertSepraConv(MLIRContext *context, Operation *f, int layer) {
   // input test
   input_assert(layer < 1, "layer > 0 \n");
   // get operations that you need
@@ -23,26 +23,23 @@ static void InsertSkip(MLIRContext *context, Operation *f, int layer) {
   AtenConvolutionOp convOp = llvm::dyn_cast<AtenConvolutionOp>(*it);
   // init rewrite
   RewriteOp rewrite(context, convOp);
-  // get zero kernel
+
+  // get one kernel
   auto shape = rewrite.getKernelShape();
   toStdShape(shape);
   int kernelSize = getKernelSize(shape);
-  std::vector<float> zeroKernelVec(kernelSize, 0);
-  Value zeroKernel = rewrite.createTensorOp(shape, zeroKernelVec);
+  std::vector<float> oneKernelVec(kernelSize);
+  creatOneTensor(oneKernelVec, shape[0]);
+  Value oneKernel = rewrite.createTensorOp(shape, oneKernelVec);
   // get zero bias
   toBiasShape(shape);
   std::vector<float> zeroBiasVec(shape[0], 0);
-  auto zeroBias = rewrite.createTensorOp(shape, zeroBiasVec);
-  // zero conv
+  Value zeroBias = rewrite.createTensorOp(shape, zeroBiasVec);
+  // insert new conv
   Value oldInput = rewrite.getInput();
-  Value zeroConv = rewrite.createConvOp(oldInput, zeroKernel, zeroBias);
-  // add zero conv
-  // Value float0 = rewrite.createFloatOp(0);
-  Value int1 = rewrite.createIntOp(1);
-  Value skip =
-      rewrite.createAddTensorOp(zeroConv.getType(), oldInput, zeroConv, int1);
+  Value oneConv = rewrite.createConvOp(oldInput, oneKernel, zeroBias);
   // replace old conv
-  rewrite.replaceConvOp(skip);
+  rewrite.replaceConvOp(oneConv);
 }
 
-use_pass(InsertSkip, 1, int, layer);
+use_pass(InsertSepraConv, 1, int, layer);

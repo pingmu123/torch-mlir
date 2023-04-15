@@ -7,168 +7,119 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "PassDetail.h"
+#include "Common.h"
 
-#include "mlir/IR/BuiltinDialect.h"
-#include "mlir/Transforms/GreedyPatternRewriteDriver.h"
-#include "torch-mlir/Dialect/Torch/IR/TorchDialect.h"
-#include "torch-mlir/Dialect/Torch/IR/TorchOps.h"
-#include "torch-mlir/Dialect/Torch/IR/TorchTypes.h"
-#include "torch-mlir/Dialect/Torch/Transforms/Passes.h"
-#include "torch-mlir/Dialect/Torch/Utils/Utils.h"
-#include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/StringExtras.h"
-#include "llvm/ADT/StringSet.h"
-
-using namespace mlir;
-using namespace mlir::torch;
-using namespace mlir::torch::Torch;
-
-static void widenConvLayer(MLIRContext *context, Operation *f) {
-  // widen convolution layer
-  // this demo only widen first two convolution by adding three channels
-  // copy channel 0 and channel 1 to new channels
-
+// widen two convolution layer by adding channels
+// randomly copy channel to new channels
+static void WidenConvLayer(MLIRContext *context, Operation *f, int layer,
+                           int number) {
+  // input test
+  input_assert(layer < 1, "layer > 0 \n");
+  input_assert(number < 1, "number > 0 \n");
   // get operations between first two convolution(include convolutions)
-  llvm::SmallPtrSet<Operation *, 16> opWorklist;
-  bool flag = false;
-  f->walk([&](Operation *op) {
-    if (isa<AtenConvolutionOp>(op)) {
-      flag = !flag;
-      opWorklist.insert(op);
-    } else if (flag) {
-      opWorklist.insert(op);
-    }
-  });
-
-  if (opWorklist.size() < 2) {
-    llvm::errs() << "Not run WidenConvLayer\n";
+  OpList oplist;
+  bool is_get = getConvMiddleOps(oplist, f, layer);
+  if (!is_get)
     return;
-  }
-
-  auto it = opWorklist.begin();
+  // get the first convolution
+  auto it = oplist.begin();
   AtenConvolutionOp convOp = llvm::dyn_cast<AtenConvolutionOp>(*it);
-  IRRewriter rewriter(context);
-  rewriter.setInsertionPoint(convOp);
+  // init rewrite
+  RewriteOp rewrite(context, convOp);
+  // get tensor
+  auto oldKernelTensor = rewrite.getKernelTensor();
+  auto oldBiasTensor = rewrite.getBiasTensor();
 
-  // add three channels by copy existing channels, two channel 0 and one
-  // channel 1
-  Value oldKernel = convOp.getOperand(1);
-  Value oldBias = convOp.getOperand(2);
-  auto oldKernelOp = oldKernel.getDefiningOp<ValueTensorLiteralOp>();
-  auto oldBiasOp = oldBias.getDefiningOp<ValueTensorLiteralOp>();
-
-  // widen conv bias
-  std::vector<float> biasVec;
-  // is there better way to get the tensor data?
-  for (auto i : oldBiasOp.getValue().getValues<float>()) {
-    biasVec.push_back(i);
+  // get random channels to copy
+  auto shape = rewrite.getKernelShape();
+  std::vector<int> randomChannel(number);   // index of channel to copy
+  std::vector<int> copyNumber(shape[0], 1); // number of copying every channel
+  srand(time(0));
+  for (int i = 0; i < number; i++) {
+    int index = rand() % shape[0];
+    randomChannel[i] = index;
+    copyNumber[index] += 1;
   }
-  // shape of bias is C
-  auto shape = oldBias.getType().cast<ValueTensorType>().getSizes().vec();
-  shape[0] = shape[0] + 3;
-  biasVec.push_back(biasVec[0]);
-  biasVec.push_back(biasVec[0]);
-  biasVec.push_back(biasVec[1]);
-  // create a constant tensor of float type by `shape` and `biasVec`
-  auto resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(shape),
-                                               rewriter.getF32Type());
-  auto dense = DenseElementsAttr::get(
-      RankedTensorType::get(llvm::ArrayRef(shape), rewriter.getF32Type()),
-      llvm::ArrayRef(biasVec));
-  rewriter.replaceOpWithNewOp<ValueTensorLiteralOp>(oldBiasOp, resultTensorType,
-                                                    dense);
-  // widen conv kernel
+
+  // widen kernel of the first convolution
+  int channelSize = getChannelSize(shape);
   std::vector<float> kernelVec;
-  for (auto i : oldKernelOp.getValue().getValues<float>()) {
-    kernelVec.push_back(i);
+  copyTensor(kernelVec, oldKernelTensor);
+  // copy kernel channel
+  shape[0] = shape[0] + number;
+  for (auto channel : randomChannel) {
+    auto begin = channel * channelSize;
+    pushBackVec(kernelVec, begin, channelSize);
   }
-  // kernel layout is CCHW: new channels, old channels, height, width
-  shape = oldKernel.getType().cast<ValueTensorType>().getSizes().vec();
-  shape[0] = shape[0] + 3;
-  int channelSize = shape[1] * shape[2] * shape[3];
-  kernelVec.insert(kernelVec.end(), kernelVec.begin(),
-                   kernelVec.begin() + channelSize);
-  kernelVec.insert(kernelVec.end(), kernelVec.begin(),
-                   kernelVec.begin() + channelSize);
-  kernelVec.insert(kernelVec.end(), kernelVec.begin() + channelSize,
-                   kernelVec.begin() + 2 * channelSize);
-  resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(shape),
-                                          rewriter.getF32Type());
-  dense = DenseElementsAttr::get(
-      RankedTensorType::get(llvm::ArrayRef(shape), rewriter.getF32Type()),
-      llvm::ArrayRef(kernelVec));
-  rewriter.replaceOpWithNewOp<ValueTensorLiteralOp>(oldKernelOp,
-                                                    resultTensorType, dense);
+  // replace old kernel tensor
+  rewrite.replaceTensorOp(oldKernelTensor, shape, kernelVec);
 
-  // modify ops between two conv according to new channel number
-  for (; it != opWorklist.end(); it = std::next(it)) {
-    // the last op is the second conv, which don't need change result shape
-    if (std::next(it) == opWorklist.end())
+  // widen bias of the first convolution
+  shape = rewrite.getBiasShape();
+  std::vector<float> biasVec;
+  copyTensor(biasVec, oldBiasTensor);
+  // copy bias
+  shape[0] = shape[0] + number;
+  for (auto channel : randomChannel) {
+    biasVec.push_back(biasVec[channel]);
+  }
+  // replace old bias tensor
+  rewrite.replaceTensorOp(oldBiasTensor, shape, biasVec);
+
+  // widen middle operations between first two convolution(not include the
+  // second conv)
+  for (; it != oplist.end(); it = std::next(it)) {
+    if (std::next(it) == oplist.end())
       break;
     auto op = *it;
-    if (ValueTensorType tensorTy =
-            op->getResult(0).getType().dyn_cast<ValueTensorType>()) {
-      shape = tensorTy.getSizes().vec();
-      shape[1] += 3;
-      resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(shape),
-                                              rewriter.getF32Type());
-      op->getResult(0).setType(resultTensorType);
+    auto opResult = op->getResult(0);
+    auto tensorType = opResult.getType().dyn_cast<ValueTensorType>();
+    if (tensorType) {
+      shape = getShape(opResult);
+      shape[1] += number;
+      auto resultTensorType = rewrite.getValueTensorType(shape);
+      opResult.setType(resultTensorType);
     }
   }
 
-  // widen second conv kernel, no need to widen bias
+  // widen kernel of the second convolution, only widen kernel, no need to widen
+  // bias
+
+  // get kernel information
   convOp = llvm::dyn_cast<AtenConvolutionOp>(*it);
-  oldKernel = convOp.getOperand(1);
-  oldKernelOp = oldKernel.getDefiningOp<ValueTensorLiteralOp>();
+  rewrite.setConvOp(convOp);
+  oldKernelTensor = rewrite.getKernelTensor();
+
+  // widen kernel of the first convolution
   kernelVec.clear();
-  for (auto i : oldKernelOp.getValue().getValues<float>()) {
-    kernelVec.push_back(i);
-  }
-  // kernel shape is CCHW: new channels, old channels, height, width
-  shape = oldKernel.getType().cast<ValueTensorType>().getSizes().vec();
+  copyTensor(kernelVec, oldKernelTensor);
+  shape = rewrite.getKernelShape();
+  channelSize = getChannelSize(shape);
+  // copy kernel
   int hwSize = shape[2] * shape[3];
-  channelSize = hwSize * shape[1];
-  shape[1] = shape[1] + 3;
   std::vector<float> newKernelVec;
+  // update and copy in_channels data for every out_channels
   for (int i = 0; i < shape[0]; i++) {
-    int base = i * channelSize;
-    for (int j = 0; j < hwSize; j++) {
-      kernelVec[base + j] /= 3;
-      kernelVec[base + hwSize + j] /= 2;
+    auto base = i * channelSize;
+    // update
+    for (int j = 0; j < shape[1]; j++) {
+      if (copyNumber[j] == 1)
+        continue;
+      for (int k = 0; k < hwSize; k++) {
+        auto index = base + j * hwSize + k;
+        kernelVec[index] /= copyNumber[j];
+      }
     }
-    newKernelVec.insert(newKernelVec.end(), kernelVec.begin() + base,
-                        kernelVec.begin() + base + channelSize);
-    newKernelVec.insert(newKernelVec.end(), kernelVec.begin() + base,
-                        kernelVec.begin() + base + hwSize);
-    newKernelVec.insert(newKernelVec.end(), kernelVec.begin() + base,
-                        kernelVec.begin() + base + hwSize);
-    newKernelVec.insert(newKernelVec.end(), kernelVec.begin() + base + hwSize,
-                        kernelVec.begin() + base + 2 * hwSize);
+    // copy
+    pushBackVec(newKernelVec, kernelVec, base, channelSize);
+    for (auto channel : randomChannel) {
+      auto begin = base + channel * hwSize;
+      pushBackVec(newKernelVec, kernelVec, begin, hwSize);
+    }
   }
-  resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(shape),
-                                          rewriter.getF32Type());
-  dense = DenseElementsAttr::get(
-      RankedTensorType::get(llvm::ArrayRef(shape), rewriter.getF32Type()),
-      llvm::ArrayRef(newKernelVec));
-  rewriter.replaceOpWithNewOp<ValueTensorLiteralOp>(oldKernelOp,
-                                                    resultTensorType, dense);
+  shape[1] = shape[1] + number;
+  // replace old kernel tensor
+  rewrite.replaceTensorOp(oldKernelTensor, shape, newKernelVec);
 }
 
-namespace {
-class WidenConvLayerPass : public WidenConvLayerBase<WidenConvLayerPass> {
-public:
-  WidenConvLayerPass() = default;
-  void runOnOperation() override {
-    MLIRContext *context = &getContext();
-    auto f = getOperation();
-    widenConvLayer(context, f);
-  }
-};
-} // namespace
-
-std::unique_ptr<OperationPass<func::FuncOp>>
-mlir::torch::Torch::createWidenConvLayerPass() {
-  return std::make_unique<WidenConvLayerPass>();
-}
-
+use_pass(WidenConvLayer, 2, int, layer, int, number);
