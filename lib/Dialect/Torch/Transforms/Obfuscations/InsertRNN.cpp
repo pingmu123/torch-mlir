@@ -7,7 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "PassDetail.h"
+#include "Common.h"
 #include <iostream>
 #include <random>
 
@@ -61,7 +61,7 @@ static void insertRNN(MLIRContext *context, Operation *f, int number) {
   int size_hidden = shape_hidden[0] * shape_hidden[1] * shape_hidden[2];
   std::vector<float> zeroHiddenVec(size_hidden, 0);
   Value zeroHidden =
-      Torch::createTensor(rewriter, loc, context, shape_hidden, zeroHiddenVec);
+      createTensor(rewriter, loc, context, shape_hidden, zeroHiddenVec);
 
   // slice_type
   auto shape_slice = shape;
@@ -70,13 +70,13 @@ static void insertRNN(MLIRContext *context, Operation *f, int number) {
       shape_slice[0] * shape_slice[1] * shape_slice[2] * shape_slice[3];
   std::vector<float> zeroSliceVec(size_slice, 0);
   Value zeroSlice =
-      Torch::createTensor(rewriter, loc, context, shape_slice, zeroSliceVec);
+      createTensor(rewriter, loc, context, shape_slice, zeroSliceVec);
 
   // view
   auto shape_view = shape;
   shape_view[0] = 1;
   shape_view[1] = shape[0] * shape[1];
-  Value view = Torch::createReshape(rewriter, loc, context, shape_view, rst);
+  Value view = createReshape(rewriter, loc, context, shape_view, rst);
 
   Value cat_extra;
   std::vector<Value> values(cycles);
@@ -96,8 +96,7 @@ static void insertRNN(MLIRContext *context, Operation *f, int number) {
     shape_cat[0] = shape_view[0] * cycles;
     int size_cat = shape_cat[0] * shape_cat[1] * shape_cat[2] * shape_cat[3];
     std::vector<float> zeroCatVec(size_cat);
-    Value zeroCat =
-        Torch::createTensor(rewriter, loc, context, shape_cat, zeroCatVec);
+    Value zeroCat = createTensor(rewriter, loc, context, shape_cat, zeroCatVec);
     cat_extra =
         rewriter.create<AtenCatOp>(loc, zeroCat.getType(), list_extra, int0);
   }
@@ -107,8 +106,7 @@ static void insertRNN(MLIRContext *context, Operation *f, int number) {
   shape_cat[1] = shape[2] * 2;
   int size_cat = shape_cat[0] * shape_cat[1] * shape_cat[2];
   std::vector<float> zeroCatVec(size_cat);
-  Value zeroCat =
-      Torch::createTensor(rewriter, loc, context, shape_cat, zeroCatVec);
+  Value zeroCat = createTensor(rewriter, loc, context, shape_cat, zeroCatVec);
 
   // transpose_hidden
   auto shape_transpose = shape;
@@ -125,8 +123,8 @@ static void insertRNN(MLIRContext *context, Operation *f, int number) {
       }
     }
   }
-  Value valueTranspose = Torch::createTensor(
-      rewriter, loc, context, shape_transpose, valueTransposeVec);
+  Value valueTranspose =
+      createTensor(rewriter, loc, context, shape_transpose, valueTransposeVec);
 
   // add_hidden
   Value float1 =
@@ -136,8 +134,7 @@ static void insertRNN(MLIRContext *context, Operation *f, int number) {
   shape_add[0] = shape[3];
   std::vector<float> valueAddVec(shape_add[0], 0);
 
-  Value valueAdd =
-      Torch::createTensor(rewriter, loc, context, shape_add, valueAddVec);
+  Value valueAdd = createTensor(rewriter, loc, context, shape_add, valueAddVec);
 
   Value int_start =
       rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(0));
@@ -224,7 +221,7 @@ static void insertRNN(MLIRContext *context, Operation *f, int number) {
           }
         }
       }
-      Value valueTranspose_2 = Torch::createTensor(
+      Value valueTranspose_2 = createTensor(
           rewriter, loc, context, shape_transpose_2, valueTranspose_2Vec);
       Value intTranspose_2 = rewriter.create<AtenTransposeIntOp>(
           loc, valueTranspose.getType(), valueTranspose_2, int0, int1);
@@ -237,8 +234,8 @@ static void insertRNN(MLIRContext *context, Operation *f, int number) {
       shape_add_2[0] = shape[3];
       std::vector<float> valueAdd_2Vec(shape_add_2[0], 0);
 
-      Value valueAdd_2 = Torch::createTensor(rewriter, loc, context,
-                                             shape_add_2, valueAdd_2Vec);
+      Value valueAdd_2 =
+          createTensor(rewriter, loc, context, shape_add_2, valueAdd_2Vec);
       Value add_2 = rewriter.create<AtenAddTensorOp>(
           loc, matmul_2.getType(), matmul_2, valueAdd_2, float1);
       // relu
