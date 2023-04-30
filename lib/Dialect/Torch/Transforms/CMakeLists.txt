@@ -1,4 +1,6 @@
-file(GLOB OBF_FILES "Obfuscations/*.cpp")
+# file(GLOB OBF_FILES "Obfuscations/*.cpp")
+file(GLOB OBF_FILES_1 "myObfuscations/*.cpp")
+file(GLOB OBF_FILES_2 "myDeObfuscations/*.cpp")
 
 add_mlir_library(TorchMLIRTorchPasses
   AdjustCallingConventions.cpp
@@ -21,7 +23,9 @@ add_mlir_library(TorchMLIRTorchPasses
   SimplifyShapeCalculations.cpp
   SimplifyDtypeCalculations.cpp
   SimplifyAbstractInterpCalculationsUtils.cpp
-  ${OBF_FILES}
+  myDeObfuscations/AntiInsertLinears.cpp
+  ${OBF_FILES_1}
+  ${OBF_FILES_2}
 
   ADDITIONAL_HEADER_DIRS
   ${PROJECT_SOURCE_DIR}/include/torch-mlir/Dialect/Torch/Transforms

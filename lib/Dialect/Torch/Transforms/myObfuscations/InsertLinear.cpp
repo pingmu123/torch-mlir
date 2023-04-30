@@ -343,7 +343,6 @@ public:
       llvm::errs() << "Not run InsertLinear\n";
       return;
     }
-
     if (net == "") {
       // todo: opWorklist too large will cause precision error
       while (opWorklist.size() >= 3)

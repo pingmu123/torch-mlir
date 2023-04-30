@@ -98,29 +98,79 @@ std::unique_ptr<OperationPass<ModuleOp>> createRefinePublicReturnPass();
 std::unique_ptr<OperationPass<func::FuncOp>>
 createDecomposeComplexOpsPass(ArrayRef<std::string> legalOps);
 
-std::unique_ptr<OperationPass<func::FuncOp>> createWidenConvLayerPass(int layer, int number);
+///==========================================================================================///
 
-std::unique_ptr<OperationPass<func::FuncOp>> createInsertSkipPass(int layer);
+// create DummyAdditionPass
+std::unique_ptr<OperationPass<func::FuncOp>> createDummyAdditionPass();
 
-std::unique_ptr<OperationPass<func::FuncOp>> createBranchLayerPass(int layer, int branch);
+// create AntiDummyAdditionPass
+std::unique_ptr<OperationPass<func::FuncOp>> createAntiDummyAdditionPass();
 
-std::unique_ptr<OperationPass<func::FuncOp>> createInsertSepraConvPass(int layer);
+std::unique_ptr<OperationPass<func::FuncOp>> createWidenConvLayerPass();
 
-std::unique_ptr<OperationPass<func::FuncOp>> createInsertConvPass(std::string net);
+// create AntiWidenConvLayerPass
+std::unique_ptr<OperationPass<func::FuncOp>> createAntiWidenConvLayerPass();
+
+std::unique_ptr<OperationPass<func::FuncOp>> createInsertSkipPass();
+
+// create AntiInsertSkipPass
+std::unique_ptr<OperationPass<func::FuncOp>> createAntiInsertSkipPass();
+
+std::unique_ptr<OperationPass<func::FuncOp>> createInsertConvPass(int number);
+
+// create AntiInsertConvPass
+std::unique_ptr<OperationPass<func::FuncOp>> createAntiInsertConvPass();
+
+// std::unique_ptr<OperationPass<func::FuncOp>> createObfuscateRNNPass(std::string obfuscation);
+
+// create BranchLayerPass
+std::unique_ptr<OperationPass<func::FuncOp>> createBranchLayerPass();
+
+// create AntiBranchLayerPass
+std::unique_ptr<OperationPass<func::FuncOp>> createAntiBranchLayerPass();
+
+// create KernelWideningPass
+std::unique_ptr<OperationPass<func::FuncOp>> createKernelWideningPass();
+
+// create AntiKernelWideningPass
+std::unique_ptr<OperationPass<func::FuncOp>> createAntiKernelWideningPass();
+
+// std::unique_ptr<OperationPass<func::FuncOp>> createInsertSepraConvPass(int layer);
+
+
 
 std::unique_ptr<OperationPass<func::FuncOp>> createInsertLinearPass(std::string net);
 
-std::unique_ptr<OperationPass<func::FuncOp>> createValueSplitPass(std::string net, int number);
+// create AntiInsertLinear
+std::unique_ptr<OperationPass<func::FuncOp>> createAntiInsertLinearPass();
 
-std::unique_ptr<OperationPass<func::FuncOp>> createMaskSplitPass(std::string net, int number);
+///==========================================================================================///
 
-std::unique_ptr<OperationPass<func::FuncOp>> createInsertRNNPass(int number);
 
-std::unique_ptr<OperationPass<func::FuncOp>> createInsertRNNWithZerosPass(std::string net, int number);
 
-std::unique_ptr<OperationPass<func::FuncOp>> createInsertMaxpoolPass();
+// std::unique_ptr<OperationPass<func::FuncOp>> createWidenConvLayerPass(int layer, int number);
 
-std::unique_ptr<OperationPass<func::FuncOp>> createInsertInceptionPass(int number);
+// std::unique_ptr<OperationPass<func::FuncOp>> createInsertSkipPass(int layer);
+
+// std::unique_ptr<OperationPass<func::FuncOp>> createBranchLayerPass(int layer, int branch);
+
+// std::unique_ptr<OperationPass<func::FuncOp>> createInsertSepraConvPass(int layer);
+
+// std::unique_ptr<OperationPass<func::FuncOp>> createInsertConvPass(std::string net);
+
+// std::unique_ptr<OperationPass<func::FuncOp>> createInsertLinearPass(std::string net);
+
+// std::unique_ptr<OperationPass<func::FuncOp>> createValueSplitPass(std::string net, int number);
+
+// std::unique_ptr<OperationPass<func::FuncOp>> createMaskSplitPass(std::string net, int number);
+
+// std::unique_ptr<OperationPass<func::FuncOp>> createInsertRNNPass(int number);
+
+// std::unique_ptr<OperationPass<func::FuncOp>> createInsertRNNWithZerosPass(std::string net, int number);
+
+// std::unique_ptr<OperationPass<func::FuncOp>> createInsertMaxpoolPass();
+
+// std::unique_ptr<OperationPass<func::FuncOp>> createInsertInceptionPass(int number);
 
 std::unique_ptr<OperationPass<ModuleOp>> createPreprocessShapeLibraryPass();
 

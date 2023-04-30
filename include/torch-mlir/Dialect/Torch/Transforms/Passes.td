@@ -238,32 +238,57 @@ def DecomposeComplexOps : Pass<"torch-decompose-complex-ops", "func::FuncOp"> {
   }];
 }
 
+///=====================================================================================///
+
 def WidenConvLayer : Pass<"torch-widen-conv-layer", "func::FuncOp"> {
   let summary = "widen convolution operations";
   let constructor = [{
-    mlir::torch::Torch::createWidenConvLayerPass(/*layer=*/1,/*number=*/1)
+    mlir::torch::Torch::createWidenConvLayerPass()
   }];
   let description = [{
   }];
-  let options = [
-    Option<"layer", "layer", "int", "1", "layer to widen.">,
-    Option<"number", "number", "int", "1", "number of new channels to widen.">
-  ];
+}
+
+// AntiWidenConvLayerPass
+def AntiWidenConvLayer : Pass<"torch-anti-widen-conv-layer", "func::FuncOp"> {
+  let summary = "Delete the widen convolution operations";
+  let constructor = [{
+    mlir::torch::Torch::createAntiWidenConvLayerPass()
+  }];
+  let description = [{
+  }];
+}
+
+// DummyAdditionPass
+def DummyAdditionPass : Pass<"torch-dummy-addition", "func::FuncOp"> {
+  let summary = "Insert a dummy addition";
+  let constructor = [{
+    mlir::torch::Torch::createDummyAdditionPass()
+  }];
+  let description = [{
+  }];
+}
+
+// AntiDummyAdditionPass
+def AntiDummyAdditionPass : Pass<"torch-anti-dummy-addition", "func::FuncOp"> {
+  let summary = "Delete the dummy addition";
+  let constructor = [{
+    mlir::torch::Torch::createAntiDummyAdditionPass()
+  }];
+  let description = [{
+  }];
 }
 
 def InsertSkip : Pass<"torch-insert-skip", "func::FuncOp"> {
   let summary = "Insert a skip with a convolution";
   let constructor = [{
-    mlir::torch::Torch::createInsertSkipPass(/*layer=*/1)
+    mlir::torch::Torch::createInsertSkipPass()
   }];
   let description = [{
   }];
-  let options = [
-    Option<"layer", "layer", "int", "1", "layer to widen.">
-  ];
 }
 
-def InsertSepraConv : Pass<"torch-insert-sepra-conv-layer", "func::FuncOp"> {
+/*def InsertSepraConv : Pass<"torch-insert-sepra-conv-layer", "func::FuncOp"> {
   let summary = "insert a separable convolution";
   let constructor = [{
     mlir::torch::Torch::createInsertSepraConvPass(/*layer=*/1)
@@ -273,83 +298,213 @@ def InsertSepraConv : Pass<"torch-insert-sepra-conv-layer", "func::FuncOp"> {
   let options = [
     Option<"layer", "layer", "int", "1", "layer to widen.">
   ];
-}
+}*/
 
+// BranchLayerPass();
 def BranchLayer : Pass<"torch-branch-layer", "func::FuncOp"> {
-  let summary = "Branch the colored layer and insert a convolution into the left branch";
+  let summary = "Compute convolutions with kernel-wise";
   let constructor = [{
-    mlir::torch::Torch::createBranchLayerPass(/*layer=*/1,/*branch=*/2)
+    mlir::torch::Torch::createBranchLayerPass()
   }];
   let description = [{
   }];
   let options = [
-    Option<"layer", "layer", "int", "1", "layer to widen.">,
-    Option<"branch", "branch", "int", "2", "number of branch.">
+    /*Option<"layer", "layer", "int", "1", "layer to widen.">,
+    Option<"branch", "branch", "int", "2", "number of branch.">*/
   ];
 }
 
-def InsertRNN : Pass<"torch-insert-RNN", "func::FuncOp"> {
-  let summary = "Insert a RNN into the network";
+// AntiBranchLayerPass();
+def AntiBranchLayer : Pass<"torch-anti-branch-layer", "func::FuncOp"> {
+  let summary = "Compute convolution with merging same size convolution Kernel";
   let constructor = [{
-    mlir::torch::Torch::createInsertRNNPass(/*NumberOfRNN=*/5)
+    mlir::torch::Torch::createAntiBranchLayerPass()
   }];
   let description = [{
   }];
   let options = [
-    Option<"number", "number", "int", /*default=*/"5",
-           "RNN numbers">
+    /*Option<"layer", "layer", "int", "1", "layer to widen.">,
+    Option<"branch", "branch", "int", "2", "number of branch.">*/
   ];
 }
-
-def InsertRNNWithZeros : Pass<"torch-insert-RNNWithZeros", "func::FuncOp"> {
-  let summary = "Insert a RNNWithZeros into the network";
+// AntiInsertSkipPass
+def AntiInsertSkip : Pass<"torch-anti-insert-skip", "func::FuncOp"> {
+  let summary = "Delete the skip(convolution)";
   let constructor = [{
-    mlir::torch::Torch::createInsertRNNWithZerosPass(/*activationFunc=*/"", /*NumberOfRNN=*/5)
+    mlir::torch::Torch::createAntiInsertSkipPass()
   }];
   let description = [{
   }];
-  let options = [
-    Option<"activationFunc", "activationFunc", "std::string", /*default=*/"",
-           "specify activationFunc to apply">,
-    Option<"number", "number", "int", /*default=*/"5",
-           "RNN numbers">
-  ];
-}
-
-def InsertMaxpool : Pass<"torch-insert-Maxpool", "func::FuncOp"> {
-  let summary = "Insert a Maxpool into the network";
-  let constructor = [{
-    mlir::torch::Torch::createInsertMaxpoolPass()
-  }];
-  let description = [{
-  }];
-}
-
-def InsertInception : Pass<"torch-insert-Inception", "func::FuncOp"> {
-  let summary = "Insert a Inception into the network";
-  let constructor = [{
-    mlir::torch::Torch::createInsertInceptionPass(/*NumberOfBranch=*/5)
-  }];
-  let description = [{
-  }];
-  let options = [
-    Option<"number", "number", "int", /*default=*/"5",
-           "Branch numbers">
-  ];
 }
 
 def InsertConv : Pass<"torch-insert-conv", "func::FuncOp"> {
   let summary = "Insert equivalent convolutions";
   let constructor = [{
-    mlir::torch::Torch::createInsertConvPass(/*net=*/"")
+    mlir::torch::Torch::createInsertConvPass(/*maxIterations=*/1)
   }];
   let description = [{
   }];
   let options = [
-    Option<"net", "net", "std::string", /*default=*/"",
-           "specify net to apply, options avaliable: RNN">
+    Option<"number", "number", "int", /*default=*/"1",
+           "Number of convolutions to insert.">
   ];
 }
+
+// AntiInsertConvPass
+def AntiInsertConv : Pass<"torch-anti-insert-conv", "func::FuncOp"> {
+  let summary = "Delete equivalent convolutions";
+  let constructor = [{
+    mlir::torch::Torch::createAntiInsertConvPass()
+  }];
+}
+
+// KernelWideningPass
+def KernelWidening : Pass<"torch-kernel-widening", "func::FuncOp"> {
+  let summary = "Use zero to pad kernel";
+  let constructor = [{
+    mlir::torch::Torch::createKernelWideningPass()
+  }];
+  let description = [{
+  }];
+}
+
+// AntiKernelWideningPass
+def AntiKernelWidening : Pass<"torch-anti-kernel-widening", "func::FuncOp"> {
+  let summary = "Delete the zeroPadding of kernel";
+  let constructor = [{
+    mlir::torch::Torch::createAntiKernelWideningPass()
+  }];
+}
+
+
+// def ObfuscateRNN : Pass<"torch-obfuscate-rnn", "func::FuncOp"> {
+//   let summary = "Insert obfuscate in RNN cell";
+//   let constructor = [{
+//     mlir::torch::Torch::createObfuscateRNNPass(/*obfuscation*/"")
+//   }];
+//   let options = [
+//     Option<"obfuscation", "obfuscation", "std::string", /*default=*/"",
+//            "obfuscation to apply: valueSplit, maskSplit">
+//   ];
+//   let description = [{
+//   }];
+// }
+
+///=====================================================================================///
+
+
+// def WidenConvLayer : Pass<"torch-widen-conv-layer", "func::FuncOp"> {
+//   let summary = "widen convolution operations";
+//   let constructor = [{
+//     mlir::torch::Torch::createWidenConvLayerPass(/*layer=*/1,/*number=*/1)
+//   }];
+//   let description = [{
+//   }];
+//   let options = [
+//     Option<"layer", "layer", "int", "1", "layer to widen.">,
+//     Option<"number", "number", "int", "1", "number of new channels to widen.">
+//   ];
+// }
+
+// def InsertSkip : Pass<"torch-insert-skip", "func::FuncOp"> {
+//   let summary = "Insert a skip with a convolution";
+//   let constructor = [{
+//     mlir::torch::Torch::createInsertSkipPass(/*layer=*/1)
+//   }];
+//   let description = [{
+//   }];
+//   let options = [
+//     Option<"layer", "layer", "int", "1", "layer to widen.">
+//   ];
+// }
+
+// def InsertSepraConv : Pass<"torch-insert-sepra-conv-layer", "func::FuncOp"> {
+//   let summary = "insert a separable convolution";
+//   let constructor = [{
+//     mlir::torch::Torch::createInsertSepraConvPass(/*layer=*/1)
+//   }];
+//   let description = [{
+//   }];
+//   let options = [
+//     Option<"layer", "layer", "int", "1", "layer to widen.">
+//   ];
+// }
+
+// def BranchLayer : Pass<"torch-branch-layer", "func::FuncOp"> {
+//   let summary = "Branch the colored layer and insert a convolution into the left branch";
+//   let constructor = [{
+//     mlir::torch::Torch::createBranchLayerPass(/*layer=*/1,/*branch=*/2)
+//   }];
+//   let description = [{
+//   }];
+//   let options = [
+//     Option<"layer", "layer", "int", "1", "layer to widen.">,
+//     Option<"branch", "branch", "int", "2", "number of branch.">
+//   ];
+// }
+
+// def InsertRNN : Pass<"torch-insert-RNN", "func::FuncOp"> {
+//   let summary = "Insert a RNN into the network";
+//   let constructor = [{
+//     mlir::torch::Torch::createInsertRNNPass(/*NumberOfRNN=*/5)
+//   }];
+//   let description = [{
+//   }];
+//   let options = [
+//     Option<"number", "number", "int", /*default=*/"5",
+//            "RNN numbers">
+//   ];
+// }
+
+// def InsertRNNWithZeros : Pass<"torch-insert-RNNWithZeros", "func::FuncOp"> {
+//   let summary = "Insert a RNNWithZeros into the network";
+//   let constructor = [{
+//     mlir::torch::Torch::createInsertRNNWithZerosPass(/*activationFunc=*/"", /*NumberOfRNN=*/5)
+//   }];
+//   let description = [{
+//   }];
+//   let options = [
+//     Option<"activationFunc", "activationFunc", "std::string", /*default=*/"",
+//            "specify activationFunc to apply">,
+//     Option<"number", "number", "int", /*default=*/"5",
+//            "RNN numbers">
+//   ];
+// }
+
+// def InsertMaxpool : Pass<"torch-insert-Maxpool", "func::FuncOp"> {
+//   let summary = "Insert a Maxpool into the network";
+//   let constructor = [{
+//     mlir::torch::Torch::createInsertMaxpoolPass()
+//   }];
+//   let description = [{
+//   }];
+// }
+
+// def InsertInception : Pass<"torch-insert-Inception", "func::FuncOp"> {
+//   let summary = "Insert a Inception into the network";
+//   let constructor = [{
+//     mlir::torch::Torch::createInsertInceptionPass(/*NumberOfBranch=*/5)
+//   }];
+//   let description = [{
+//   }];
+//   let options = [
+//     Option<"number", "number", "int", /*default=*/"5",
+//            "Branch numbers">
+//   ];
+// }
+
+// def InsertConv : Pass<"torch-insert-conv", "func::FuncOp"> {
+//   let summary = "Insert equivalent convolutions";
+//   let constructor = [{
+//     mlir::torch::Torch::createInsertConvPass(/*net=*/"")
+//   }];
+//   let description = [{
+//   }];
+//   let options = [
+//     Option<"net", "net", "std::string", /*default=*/"",
+//            "specify net to apply, options avaliable: RNN">
+//   ];
+// }
 
 def InsertLinear : Pass<"torch-insert-linear", "func::FuncOp"> {
   let summary = "Insert equivalent linears";
@@ -364,35 +519,48 @@ def InsertLinear : Pass<"torch-insert-linear", "func::FuncOp"> {
   ];
 }
 
-def ValueSplit : Pass<"torch-value-split", "func::FuncOp"> {
-  let summary = "split layer by value";
+def AntiInsertLinear : Pass<"torch-anti-insert-linear", "func::FuncOp"> {
+  let summary = "Delete equivalent linears";
   let constructor = [{
-    mlir::torch::Torch::createValueSplitPass(/*net=*/"", /*splitNumber=*/2)
+    mlir::torch::Torch::createAntiInsertLinearPass()
   }];
   let description = [{
   }];
-  let options = [
+  /*let options = [
     Option<"net", "net", "std::string", /*default=*/"",
-           "specify net to apply, options avaliable: RNN">,
-    Option<"number", "number", "int", /*default=*/"2",
-           "split numbers">
-  ];
+           "specify net to apply, options avaliable: RNN">
+  ];*/
 }
 
-def MaskSplit : Pass<"torch-mask-split", "func::FuncOp"> {
-  let summary = "split layer by mask";
-  let constructor = [{
-    mlir::torch::Torch::createMaskSplitPass(/*net=*/"", /*splitNumber=*/2)
-  }];
-  let description = [{
-  }];
-  let options = [
-    Option<"net", "net", "std::string", /*default=*/"",
-           "specify net to apply, options avaliable: RNN">,
-    Option<"number", "number", "int", /*default=*/"2",
-           "split numbers">
-  ];
-}
+// def ValueSplit : Pass<"torch-value-split", "func::FuncOp"> {
+//   let summary = "split layer by value";
+//   let constructor = [{
+//     mlir::torch::Torch::createValueSplitPass(/*net=*/"", /*splitNumber=*/2)
+//   }];
+//   let description = [{
+//   }];
+//   let options = [
+//     Option<"net", "net", "std::string", /*default=*/"",
+//            "specify net to apply, options avaliable: RNN">,
+//     Option<"number", "number", "int", /*default=*/"2",
+//            "split numbers">
+//   ];
+// }
+
+// def MaskSplit : Pass<"torch-mask-split", "func::FuncOp"> {
+//   let summary = "split layer by mask";
+//   let constructor = [{
+//     mlir::torch::Torch::createMaskSplitPass(/*net=*/"", /*splitNumber=*/2)
+//   }];
+//   let description = [{
+//   }];
+//   let options = [
+//     Option<"net", "net", "std::string", /*default=*/"",
+//            "specify net to apply, options avaliable: RNN">,
+//     Option<"number", "number", "int", /*default=*/"2",
+//            "split numbers">
+//   ];
+// }
 
 def ReifyShapeCalculations : Pass<"torch-reify-shape-calculations", "ModuleOp"> {
   let summary = "Reify shape calculations.";
