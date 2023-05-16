@@ -27,12 +27,12 @@ using namespace mlir::torch::Torch;
 
 static void antiInsertConv(MLIRContext *context, Operation *f) {
   
-  llvm::SmallPtrSet<mlir::Operation *, 16> OpWorklist;
+  llvm::SmallVector<mlir::Operation *, 16> OpWorklist;
 
   // anti insert conv
 
   f->walk([&](mlir::Operation *op){ // all Ops
-      OpWorklist.insert(op);
+      OpWorklist.push_back(op);
   });
 
 
@@ -180,7 +180,7 @@ static void antiInsertConv(MLIRContext *context, Operation *f) {
   // erase the ops which difficultly process in the process
   OpWorklist.clear();
   f->walk([&](mlir::Operation *op){ // all Ops
-      OpWorklist.insert(op);
+      OpWorklist.push_back(op);
   });
   for(auto it_3=OpWorklist.begin();it_3!=OpWorklist.end();it_3++){
     auto op = *(it_3);

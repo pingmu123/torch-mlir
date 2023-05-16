@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch_mlir
@@ -42,31 +43,67 @@ module = torch_mlir.compile(net, torch.ones(1, 1, 28, 28), output_type="torch")
 print(module.operation.get_asm(large_elements_limit=10))
 
 
-# begin
+# # # your pass begin
+
+# add your passes here
+
+randNum = np.random.randint(0, 15)
+while (randNum % 8) > 0:
+    if randNum == 1:
+        torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+            module,
+            "builtin.module(func.func(torch-anti-widen-conv-layer))",
+            "AntiWidenConvLayer",
+        )
+    elif randNum == 2:
+        torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+            module,
+            "builtin.module(func.func(torch-branch-layer))",
+            "BranchLayer",
+        )
+    elif randNum == 3:
+        torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+            module,
+            "builtin.module(func.func(torch-dummy-addition))",
+            "DummyAddition",
+        )
+    elif randNum == 4:
+        torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+            module,
+            "builtin.module(func.func(torch-insert-conv))",
+            "InsertConvs",
+        )
+    elif randNum == 5:
+        torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+            module,
+            "builtin.module(func.func(torch-insert-linear))",
+            "InsertLinear",
+        )
+    elif randNum == 6:
+        torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+            module,
+            "builtin.module(func.func(torch-insert-skip))",
+            "InsertSkip",
+        )
+    elif randNum == 7:
+        torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+            module,
+            "builtin.module(func.func(torch-kernel-widening))",
+            "KernelWidening",
+        )
+    randNum = np.random.randint(0, 10)
 print("================")
-print("after InsertConvs pass")
+print("after Obfuscations")
 print("================")
-torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-    module,
-    "builtin.module(func.func(torch-insert-conv))",
-    "InsertConvs",
-)
 print(module.operation.get_asm(large_elements_limit=10))
-# end
 
 
-# begin
 print("================")
-print("after AntiInsertConvs pass")
+print("after Deobfuscations")
 print("================")
-torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-    module,
-    "builtin.module(func.func(torch-anti-insert-conv))",
-    "AntiInsertConvs",
-)
 print(module.operation.get_asm(large_elements_limit=10))
-# end
 
+# # # your pass end
 
 # lowering and run
 print("================")

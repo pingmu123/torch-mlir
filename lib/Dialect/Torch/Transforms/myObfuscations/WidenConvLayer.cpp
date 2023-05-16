@@ -30,16 +30,20 @@ static void widenConvLayer(MLIRContext *context, Operation *f) {
   // copy channel 0 and channel 1 to new channels
 
   // get operations between first two convolution(include convolutions)
-  llvm::SmallPtrSet<Operation *, 16> opWorklist;
+  std::vector<Operation*> opWorklist;
   bool flag = false;
+  int convOpNum=0;
   f->walk([&](Operation *op) {
     if (isa<AtenConvolutionOp>(op)) {
+      convOpNum++;
       flag = !flag;
-      opWorklist.insert(op);
+      opWorklist.push_back(op);
     } else if (flag) {
-      opWorklist.insert(op);
+      opWorklist.push_back(op);
     }
   });
+  if(convOpNum<2) return;
+  // else: widen first convOp
 
   auto it = opWorklist.begin();
   AtenConvolutionOp convOp = llvm::dyn_cast<AtenConvolutionOp>(*it);
@@ -81,6 +85,8 @@ static void widenConvLayer(MLIRContext *context, Operation *f) {
   // kernel layout is CCHW: new channels, old channels, height, width
   shape = oldKernel.getType().cast<ValueTensorType>().getSizes().vec();
   shape[0] = shape[0] + 3;
+  for(auto num: shape) llvm::outs()<< num << " ";
+
   int channelSize = shape[1] * shape[2] * shape[3];
   kernelVec.insert(kernelVec.end(), kernelVec.begin(),
                    kernelVec.begin() + channelSize);
@@ -97,18 +103,21 @@ static void widenConvLayer(MLIRContext *context, Operation *f) {
                                                     resultTensorType, dense);
 
   // modify ops between two conv according to new channel number
+  it++; // jump first convOp
   for (; it != opWorklist.end(); it = std::next(it)) {
     // the last op is the second conv, which don't need change result shape
-    if (std::next(it) == opWorklist.end())
-      break;
-    auto op = *it;
+    // if (std::next(it) == opWorklist.end())
+    //   break;
+    
+    auto tmpOp = *it;
+    if(isa<AtenConvolutionOp>(tmpOp)) break;
     if (ValueTensorType tensorTy =
-            op->getResult(0).getType().dyn_cast<ValueTensorType>()) {
+            tmpOp->getResult(0).getType().dyn_cast<ValueTensorType>()) {
       shape = tensorTy.getSizes().vec();
       shape[1] += 3;
       resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(shape),
                                               rewriter.getF32Type());
-      op->getResult(0).setType(resultTensorType);
+      tmpOp->getResult(0).setType(resultTensorType);
     }
   }
 

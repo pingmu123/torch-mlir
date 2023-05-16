@@ -27,28 +27,30 @@ using namespace mlir::torch::Torch;
 
 static void antiWidenConvLayer(MLIRContext *context, Operation *f) {
   
-  llvm::SmallPtrSet<mlir::Operation *, 16> ConvOpWorklist;
-  llvm::SmallPtrSet<Operation *, 16> opWorklist;
+  llvm::SmallVector<mlir::Operation *, 16> ConvOpWorklist;
+  llvm::SmallVector<Operation *, 16> opWorklist;
   
   bool flag = false;
   f->walk([&](Operation *op) { // convOp op11 ... op1N conv2Op   conv3Op op21 ... op2N conv4Op  ...
     if (isa<AtenConvolutionOp>(op)) {
       flag = !flag;
-      opWorklist.insert(op);
+      opWorklist.push_back(op);
     } else if (flag) {
-      opWorklist.insert(op);
+      opWorklist.push_back(op);
     }
   });
 
   // anti WidenConvLayer
   f->walk([&](mlir::Operation *op){ // find all ConvolutionOp
     if(dyn_cast<AtenConvolutionOp>(op)){ 
-      ConvOpWorklist.insert(op);
+      ConvOpWorklist.push_back(op);
     }
   });
   
   auto it_tmp=opWorklist.begin(); // for process ops in the middlie of two convOps
   int N=0; // conv1 conv2 ... convN
+
+  llvm::outs() << "======================Debug=====================\n" ;
 
   for(auto it=ConvOpWorklist.begin();it!=ConvOpWorklist.end();it++){
     // """                                                                    
@@ -152,6 +154,8 @@ static void antiWidenConvLayer(MLIRContext *context, Operation *f) {
       rewriter.replaceOpWithNewOp<ValueTensorLiteralOp>(conv1Bias.getDefiningOp<ValueTensorLiteralOp>(),
                                                         resultTensorType_2, dense_2);   
 
+
+      llvm::outs() << "======================1=====================\n";
       // update ops in the between of conv(2N+1) and conv(2N+2)
       while(it_tmp!=opWorklist.end()) {
         if(dyn_cast<AtenConvolutionOp>(*it_tmp)){
@@ -169,6 +173,7 @@ static void antiWidenConvLayer(MLIRContext *context, Operation *f) {
         }
         it_tmp++;
       }
+      llvm::outs() << "======================2=====================\n";
   
       // process conv2
       it++;
@@ -205,6 +210,8 @@ static void antiWidenConvLayer(MLIRContext *context, Operation *f) {
           it_3++;
         }
       }
+
+      llvm::outs() << "======================3=====================\n" ;
       // update kernel of conv2
       conv2KernelShape[1]=conv1KernelShape[0];
       auto resultTensorType_3 = ValueTensorType::get(context, llvm::ArrayRef(conv2KernelShape),
@@ -216,16 +223,15 @@ static void antiWidenConvLayer(MLIRContext *context, Operation *f) {
                                                     resultTensorType_3, dense_3);
     }
     // TODO: clear() ?
-    // repeatKernel.clear();
-    // mp.clear();
-    // totalKernelData.clear();
-    // conv1KernelData.clear();
-    // conv1BiasData.clear();
-    // newConv1KernelData.clear();
-    // flag_1
+    repeatKernel.clear();
+    mp.clear();
+    totalKernelData.clear();
+    conv1KernelData.clear();
+    conv1BiasData.clear();
+    newConv1KernelData.clear();
+    flag_1.clear();
     // newConv1BiasData.clear();
     // conv2KernelData.clear();
-    // newConv2KernelData.clear();
   }
 }
 
