@@ -28,10 +28,10 @@ using namespace mlir::torch::Torch;
 
 static void kernelWidening(MLIRContext *context, Operation *f) {
   // Use zero to pad kernel
-  llvm::SmallPtrSet<Operation *, 16> convOpWorklist;
+  llvm::SmallVector<mlir::Operation*, 32> convOpWorklist;
   f->walk([&](Operation *op) {
     if(isa<AtenConvolutionOp>(op)) {
-      convOpWorklist.insert(op);
+      convOpWorklist.push_back(op);
     }
   });
   if (convOpWorklist.empty()) {
@@ -39,8 +39,10 @@ static void kernelWidening(MLIRContext *context, Operation *f) {
     return;
   }
   for(auto it=convOpWorklist.begin();it!=convOpWorklist.end();it++){
+    srand(unsigned(time(0)));
+    int jump = std::rand();
+    if(jump%2==0) break; // randomly jump this convOp
     int padNum = std::rand() % 5; // we assume hPadding is equal to wPadding and padNum < 5
-    llvm::outs() << padNum << "\n";
     AtenConvolutionOp convOp =  dyn_cast<AtenConvolutionOp>(*it);
     IRRewriter rewriter(context);
     rewriter.setInsertionPoint(convOp);

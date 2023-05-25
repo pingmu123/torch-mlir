@@ -44,28 +44,49 @@ static void insertConv(MLIRContext *context, Operation *f, int number) {
   }
 
   IRRewriter rewriter(context);
-  Operation *op = *opWorklist.begin();
-  rewriter.setInsertionPoint(op);
-  // reusable ops
-  Location loc = op->getLoc();
-  Value int0 =
-      rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(0));
-  Value int1 =
-      rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(1));
-  Value constFalse = rewriter.create<ConstantBoolOp>(loc, false);
-  Value listInt1_1 = rewriter.create<PrimListConstructOp>(
-      loc, ListType::get(IntType::get(context)), ValueRange({int1, int1}));
-  Value listInt = rewriter.create<PrimListConstructOp>(
-      loc, ListType::get(IntType::get(context)), ValueRange({}));
+  // Operation *op = *opWorklist.begin();
+  // rewriter.setInsertionPoint(op);
+  // // reusable ops
+  // Location loc = op->getLoc();
+  // Value int0 =
+  //     rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(0));
+  // Value int1 =
+  //     rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(1));
+  // Value constFalse = rewriter.create<ConstantBoolOp>(loc, false);
+  // Value listInt1_1 = rewriter.create<PrimListConstructOp>(
+  //     loc, ListType::get(IntType::get(context)), ValueRange({int1, int1}));
+  // Value listInt = rewriter.create<PrimListConstructOp>(
+  //     loc, ListType::get(IntType::get(context)), ValueRange({}));
 
   for (int i = 0; i < number; i++) {
     // select a random place to insert
+    srand(unsigned(time(0)));
     Operation *originOp =
         *(std::next(opWorklist.begin(), std::rand() % opWorklist.size()));
+
+    Value myRst = originOp->getResult(0);
+    std::vector<long> MyShape =
+        myRst.getType().cast<ValueTensorType>().getSizes().vec();
+    if(MyShape.size()!=4){ // only process Ops which size is 4
+      i--;
+      continue;
+    }
+    rewriter.setInsertionPoint(originOp);
+    Location loc = originOp->getLoc();
+    Value int0 =
+        rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(0));
+    Value int1 =
+        rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(1));
+    Value constFalse = rewriter.create<ConstantBoolOp>(loc, false);
+    Value listInt1_1 = rewriter.create<PrimListConstructOp>(
+        loc, ListType::get(IntType::get(context)), ValueRange({int1, int1}));
+    Value listInt = rewriter.create<PrimListConstructOp>(
+        loc, ListType::get(IntType::get(context)), ValueRange({}));
+
     rewriter.setInsertionPointAfter(originOp);
     // copy originOp, for convinience of replace use of op
     Operation *op = rewriter.clone(*originOp);
-    Location loc = op->getLoc();
+    loc = op->getLoc();
 
     // create unsqueeze if dimansion less than 4, such as : (1,84) -> (1,1,1,84)
     Value rst = op->getResult(0);
@@ -145,7 +166,7 @@ static void insertConv(MLIRContext *context, Operation *f, int number) {
 
     rewriter.replaceOp(originOp, rst);
     opWorklist.erase(originOp);
-    opWorklist.insert({op});
+    // opWorklist.insert({op});
   }
 }
 

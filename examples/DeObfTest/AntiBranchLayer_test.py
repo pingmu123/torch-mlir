@@ -56,6 +56,44 @@ print(module.operation.get_asm(large_elements_limit=10))
 
 # begin
 print("================")
+print("after BranchLayer pass")
+print("================")
+torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+    module,
+    "builtin.module(func.func(torch-branch-layer))",
+    "BranchLayer",
+)
+print(module.operation.get_asm(large_elements_limit=10))
+# end
+
+
+# begin
+print("================")
+print("after BranchLayer pass")
+print("================")
+torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+    module,
+    "builtin.module(func.func(torch-branch-layer))",
+    "BranchLayer",
+)
+print(module.operation.get_asm(large_elements_limit=10))
+# end
+
+
+# begin
+print("================")
+print("after AntiBranchLayer pass")
+print("================")
+torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+    module,
+    "builtin.module(func.func(torch-anti-branch-layer))",
+    "AntiBranchLayer",
+)
+print(module.operation.get_asm(large_elements_limit=10))
+# end
+
+# begin
+print("================")
 print("after AntiBranchLayer pass")
 print("================")
 torch_mlir.compiler_utils.run_pipeline_with_repro_report(

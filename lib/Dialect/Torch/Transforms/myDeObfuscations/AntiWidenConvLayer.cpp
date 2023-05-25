@@ -26,18 +26,16 @@ using namespace mlir::torch::Torch;
 
 
 static void antiWidenConvLayer(MLIRContext *context, Operation *f) {
+
+  /*
+    Note: this pass must be put in last.
+  */
   
-  llvm::SmallVector<mlir::Operation *, 16> ConvOpWorklist;
-  llvm::SmallVector<Operation *, 16> opWorklist;
+  llvm::SmallVector<mlir::Operation*, 32> ConvOpWorklist;
+  llvm::SmallVector<mlir::Operation*, 32> opWorklist;
   
-  bool flag = false;
-  f->walk([&](Operation *op) { // convOp op11 ... op1N conv2Op   conv3Op op21 ... op2N conv4Op  ...
-    if (isa<AtenConvolutionOp>(op)) {
-      flag = !flag;
-      opWorklist.push_back(op);
-    } else if (flag) {
-      opWorklist.push_back(op);
-    }
+  f->walk([&](Operation *op) { // all Op
+    opWorklist.push_back(op);
   });
 
   // anti WidenConvLayer
@@ -48,9 +46,6 @@ static void antiWidenConvLayer(MLIRContext *context, Operation *f) {
   });
   
   auto it_tmp=opWorklist.begin(); // for process ops in the middlie of two convOps
-  int N=0; // conv1 conv2 ... convN
-
-  llvm::outs() << "======================Debug=====================\n" ;
 
   for(auto it=ConvOpWorklist.begin();it!=ConvOpWorklist.end();it++){
     // """                                                                    
@@ -155,8 +150,10 @@ static void antiWidenConvLayer(MLIRContext *context, Operation *f) {
                                                         resultTensorType_2, dense_2);   
 
 
-      llvm::outs() << "======================1=====================\n";
-      // update ops in the between of conv(2N+1) and conv(2N+2)
+      // update ops in the between of conv(N) and conv(N+1)
+      // 05.19 todo: fixed bugs： update ops in the between of conv(N) and conv(N+1) which depend on conv(N)
+      while(*it_tmp!=*it) it_tmp++;
+      int N=0;
       while(it_tmp!=opWorklist.end()) {
         if(dyn_cast<AtenConvolutionOp>(*it_tmp)){
           N++;
@@ -173,7 +170,6 @@ static void antiWidenConvLayer(MLIRContext *context, Operation *f) {
         }
         it_tmp++;
       }
-      llvm::outs() << "======================2=====================\n";
   
       // process conv2
       it++;
@@ -211,7 +207,6 @@ static void antiWidenConvLayer(MLIRContext *context, Operation *f) {
         }
       }
 
-      llvm::outs() << "======================3=====================\n" ;
       // update kernel of conv2
       conv2KernelShape[1]=conv1KernelShape[0];
       auto resultTensorType_3 = ValueTensorType::get(context, llvm::ArrayRef(conv2KernelShape),

@@ -1,0 +1,624 @@
+Script started on 2023-05-24 18:43:09+08:00 [TERM="xterm-256color" TTY="/dev/pts/6" COLUMNS="142" LINES="14"]
+[?2004h]0;pingmu123@LAPTOP-SA8SOC9R: ~/torch-mlir/examples[01;32mpingmu123@LAPTOP-SA8SOC9R[00m:[01;34m~/torch-mlir/examples[00m$ exitpython test_all.py 
+[?2004lpython: can't open file '/home/pingmu123/torch-mlir/examples/test_all.py': [Errno 2] No such file or directory
+[?2004h]0;pingmu123@LAPTOP-SA8SOC9R: ~/torch-mlir/examples[01;32mpingmu123@LAPTOP-SA8SOC9R[00m:[01;34m~/torch-mlir/examples[00m$ python test_all.py exit[Kpython test_all.py exit[Kpython test_all.py exit[Kpython test_all.py [Kpython test_all.py exit[Kpython test_all.py [Kpythob [K[Kn AlexNet.py 
+[?2004lAlexNet(
+  (features): Sequential(
+    (0): Conv2d(3, 64, kernel_size=(11, 11), stride=(4, 4), padding=(2, 2))
+    (1): ReLU(inplace=True)
+    (2): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (3): Conv2d(64, 192, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))
+    (4): ReLU(inplace=True)
+    (5): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (6): Conv2d(192, 384, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (7): ReLU(inplace=True)
+    (8): Conv2d(384, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (9): ReLU(inplace=True)
+    (10): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (11): ReLU(inplace=True)
+    (12): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (classifier): Sequential(
+    (0): Dropout(p=0.5, inplace=False)
+    (1): Linear(in_features=9216, out_features=4096, bias=True)
+    (2): ReLU(inplace=True)
+    (3): Dropout(p=0.5, inplace=False)
+    (4): Linear(in_features=4096, out_features=4096, bias=True)
+    (5): ReLU(inplace=True)
+    (6): Linear(in_features=4096, out_features=1000, bias=True)
+  )
+)
+================
+origin torch mlir
+================
+module attributes {torch.debug_module_name = "AlexNet"} {
+  func.func @forward(%arg0: !torch.vtensor<[1,3,227,227],f32>) -> !torch.vtensor<[1,1000],f32> {
+    %int0 = torch.constant.int 0
+    %int1 = torch.constant.int 1
+    %float1.000000e00 = torch.constant.float 1.000000e+00
+    %false = torch.constant.bool false
+    %0 = torch.vtensor.literal(dense_resource<__elided__> : tensor<1000xf32>) : !torch.vtensor<[1000],f32>
+    %1 = torch.vtensor.literal(dense_resource<__elided__> : tensor<1000x4096xf32>) : !torch.vtensor<[1000,4096],f32>
+    %2 = torch.vtensor.literal(dense_resource<__elided__> : tensor<4096xf32>) : !torch.vtensor<[4096],f32>
+    %3 = torch.vtensor.literal(dense_resource<__elided__> : tensor<4096x4096xf32>) : !torch.vtensor<[4096,4096],f32>
+    %4 = torch.vtensor.literal(dense_resource<__elided__> : tensor<4096xf32>) : !torch.vtensor<[4096],f32>
+    %5 = torch.vtensor.literal(dense_resource<__elided__> : tensor<4096x9216xf32>) : !torch.vtensor<[4096,9216],f32>
+    %6 = torch.vtensor.literal(dense_resource<__elided__> : tensor<256xf32>) : !torch.vtensor<[256],f32>
+    %7 = torch.vtensor.literal(dense_resource<__elided__> : tensor<256x256x3x3xf32>) : !torch.vtensor<[256,256,3,3],f32>
+    %8 = torch.vtensor.literal(dense_resource<__elided__> : tensor<256xf32>) : !torch.vtensor<[256],f32>
+    %9 = torch.vtensor.literal(dense_resource<__elided__> : tensor<256x384x3x3xf32>) : !torch.vtensor<[256,384,3,3],f32>
+    %10 = torch.vtensor.literal(dense_resource<__elided__> : tensor<384xf32>) : !torch.vtensor<[384],f32>
+    %11 = torch.vtensor.literal(dense_resource<__elided__> : tensor<384x192x3x3xf32>) : !torch.vtensor<[384,192,3,3],f32>
+    %12 = torch.vtensor.literal(dense_resource<__elided__> : tensor<192xf32>) : !torch.vtensor<[192],f32>
+    %13 = torch.vtensor.literal(dense_resource<__elided__> : tensor<192x64x5x5xf32>) : !torch.vtensor<[192,64,5,5],f32>
+    %14 = torch.vtensor.literal(dense_resource<__elided__> : tensor<64xf32>) : !torch.vtensor<[64],f32>
+    %15 = torch.vtensor.literal(dense_resource<__elided__> : tensor<64x3x11x11xf32>) : !torch.vtensor<[64,3,11,11],f32>
+    %int2 = torch.constant.int 2
+    %int4 = torch.constant.int 4
+    %int3 = torch.constant.int 3
+    %int9216 = torch.constant.int 9216
+    %16 = torch.prim.ListConstruct %int4, %int4 : (!torch.int, !torch.int) -> !torch.list<int>
+    %17 = torch.prim.ListConstruct %int2, %int2 : (!torch.int, !torch.int) -> !torch.list<int>
+    %18 = torch.prim.ListConstruct %int1, %int1 : (!torch.int, !torch.int) -> !torch.list<int>
+    %19 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %20 = torch.aten.convolution %arg0, %15, %14, %16, %17, %18, %false, %19, %int1 : !torch.vtensor<[1,3,227,227],f32>, !torch.vtensor<[64,3,11,11],f32>, !torch.vtensor<[64],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,64,56,56],f32>
+    %21 = torch.aten.relu %20 : !torch.vtensor<[1,64,56,56],f32> -> !torch.vtensor<[1,64,56,56],f32>
+    %22 = torch.prim.ListConstruct %int3, %int3 : (!torch.int, !torch.int) -> !torch.list<int>
+    %23 = torch.prim.ListConstruct %int0, %int0 : (!torch.int, !torch.int) -> !torch.list<int>
+    %24 = torch.aten.max_pool2d %21, %22, %17, %23, %18, %false : !torch.vtensor<[1,64,56,56],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool -> !torch.vtensor<[1,64,27,27],f32>
+    %25 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %26 = torch.aten.convolution %24, %13, %12, %18, %17, %18, %false, %25, %int1 : !torch.vtensor<[1,64,27,27],f32>, !torch.vtensor<[192,64,5,5],f32>, !torch.vtensor<[192],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,192,27,27],f32>
+    %27 = torch.aten.relu %26 : !torch.vtensor<[1,192,27,27],f32> -> !torch.vtensor<[1,192,27,27],f32>
+    %28 = torch.aten.max_pool2d %27, %22, %17, %23, %18, %false : !torch.vtensor<[1,192,27,27],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool -> !torch.vtensor<[1,192,13,13],f32>
+    %29 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %30 = torch.aten.convolution %28, %11, %10, %18, %18, %18, %false, %29, %int1 : !torch.vtensor<[1,192,13,13],f32>, !torch.vtensor<[384,192,3,3],f32>, !torch.vtensor<[384],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,384,13,13],f32>
+    %31 = torch.aten.relu %30 : !torch.vtensor<[1,384,13,13],f32> -> !torch.vtensor<[1,384,13,13],f32>
+    %32 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %33 = torch.aten.convolution %31, %9, %8, %18, %18, %18, %false, %32, %int1 : !torch.vtensor<[1,384,13,13],f32>, !torch.vtensor<[256,384,3,3],f32>, !torch.vtensor<[256],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,256,13,13],f32>
+    %34 = torch.aten.relu %33 : !torch.vtensor<[1,256,13,13],f32> -> !torch.vtensor<[1,256,13,13],f32>
+    %35 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %36 = torch.aten.convolution %34, %7, %6, %18, %18, %18, %false, %35, %int1 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[256,256,3,3],f32>, !torch.vtensor<[256],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,256,13,13],f32>
+    %37 = torch.aten.relu %36 : !torch.vtensor<[1,256,13,13],f32> -> !torch.vtensor<[1,256,13,13],f32>
+    %38 = torch.aten.max_pool2d %37, %22, %17, %23, %18, %false : !torch.vtensor<[1,256,13,13],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool -> !torch.vtensor<[1,256,6,6],f32>
+    %39 = torch.prim.ListConstruct %int1, %int9216 : (!torch.int, !torch.int) -> !torch.list<int>
+    %40 = torch.aten.view %38, %39 : !torch.vtensor<[1,256,6,6],f32>, !torch.list<int> -> !torch.vtensor<[1,9216],f32>
+    %41 = torch.aten.transpose.int %5, %int0, %int1 : !torch.vtensor<[4096,9216],f32>, !torch.int, !torch.int -> !torch.vtensor<[9216,4096],f32>
+    %42 = torch.aten.mm %40, %41 : !torch.vtensor<[1,9216],f32>, !torch.vtensor<[9216,4096],f32> -> !torch.vtensor<[1,4096],f32>
+    %43 = torch.aten.add.Tensor %42, %4, %float1.000000e00 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[4096],f32>, !torch.float -> !torch.vtensor<[1,4096],f32>
+    %44 = torch.aten.relu %43 : !torch.vtensor<[1,4096],f32> -> !torch.vtensor<[1,4096],f32>
+    %45 = torch.aten.transpose.int %3, %int0, %int1 : !torch.vtensor<[4096,4096],f32>, !torch.int, !torch.int -> !torch.vtensor<[4096,4096],f32>
+    %46 = torch.aten.mm %44, %45 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[4096,4096],f32> -> !torch.vtensor<[1,4096],f32>
+    %47 = torch.aten.add.Tensor %46, %2, %float1.000000e00 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[4096],f32>, !torch.float -> !torch.vtensor<[1,4096],f32>
+    %48 = torch.aten.relu %47 : !torch.vtensor<[1,4096],f32> -> !torch.vtensor<[1,4096],f32>
+    %49 = torch.aten.transpose.int %1, %int0, %int1 : !torch.vtensor<[1000,4096],f32>, !torch.int, !torch.int -> !torch.vtensor<[4096,1000],f32>
+    %50 = torch.aten.mm %48, %49 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[4096,1000],f32> -> !torch.vtensor<[1,1000],f32>
+    %51 = torch.aten.add.Tensor %50, %0, %float1.000000e00 : !torch.vtensor<[1,1000],f32>, !torch.vtensor<[1000],f32>, !torch.float -> !torch.vtensor<[1,1000],f32>
+    return %51 : !torch.vtensor<[1,1000],f32>
+  }
+}
+
+padNum=2
+padNum=1
+padNum=2
+padNum=3
+padNum=4
+================
+after Obfuscations
+================
+Obfuscation Passes:
+    WidenLayerPass
+    InsertConvsPass
+    Jump this Obfuscation
+    InsertConvsPass
+    Jump this Obfuscation
+    InsertConvsPass
+    InsertSkipPass
+    InsertLinearsPass
+    KernelWideningPass
+    Jump this Obfuscation
+    Jump this Obfuscation
+    Jump this Obfuscation
+    Jump this Obfuscation
+    KernelWideningPass
+    DummyAdditionPass
+module attributes {torch.debug_module_name = "AlexNet"} {
+  func.func @forward(%arg0: !torch.vtensor<[1,3,227,227],f32>) -> !torch.vtensor<[1,1000],f32> {
+    %int0 = torch.constant.int 0
+    %int1 = torch.constant.int 1
+    %float1.000000e00 = torch.constant.float 1.000000e+00
+    %false = torch.constant.bool false
+    %0 = torch.vtensor.literal(dense_resource<__elided__> : tensor<1000xf32>) : !torch.vtensor<[1000],f32>
+    %1 = torch.vtensor.literal(dense_resource<__elided__> : tensor<1000x4096xf32>) : !torch.vtensor<[1000,4096],f32>
+    %2 = torch.vtensor.literal(dense_resource<__elided__> : tensor<4096xf32>) : !torch.vtensor<[4096],f32>
+    %3 = torch.vtensor.literal(dense_resource<__elided__> : tensor<4096x4096xf32>) : !torch.vtensor<[4096,4096],f32>
+    %4 = torch.vtensor.literal(dense_resource<__elided__> : tensor<4096xf32>) : !torch.vtensor<[4096],f32>
+    %5 = torch.vtensor.literal(dense_resource<__elided__> : tensor<4096x9216xf32>) : !torch.vtensor<[4096,9216],f32>
+    %6 = torch.vtensor.literal(dense_resource<__elided__> : tensor<256xf32>) : !torch.vtensor<[256],f32>
+    %7 = torch.vtensor.literal(dense_resource<__elided__> : tensor<256x384x3x3xf32>) : !torch.vtensor<[256,384,3,3],f32>
+    %8 = torch.vtensor.literal(dense_resource<__elided__> : tensor<192xf32>) : !torch.vtensor<[192],f32>
+    %9 = torch.vtensor.literal(dense_resource<__elided__> : tensor<192x64x5x5xf32>) : !torch.vtensor<[192,64,5,5],f32>
+    %10 = torch.vtensor.literal(dense_resource<__elided__> : tensor<64xf32>) : !torch.vtensor<[64],f32>
+    %11 = torch.vtensor.literal(dense_resource<__elided__> : tensor<64x3x11x11xf32>) : !torch.vtensor<[64,3,11,11],f32>
+    %int2 = torch.constant.int 2
+    %int4 = torch.constant.int 4
+    %int3 = torch.constant.int 3
+    %int9216 = torch.constant.int 9216
+    %12 = torch.prim.ListConstruct %int4, %int4 : (!torch.int, !torch.int) -> !torch.list<int>
+    %13 = torch.prim.ListConstruct %int2, %int2 : (!torch.int, !torch.int) -> !torch.list<int>
+    %14 = torch.prim.ListConstruct %int1, %int1 : (!torch.int, !torch.int) -> !torch.list<int>
+    %15 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %16 = torch.vtensor.literal(dense_resource<__elided__> : tensor<64x3x15x15xf32>) : !torch.vtensor<[64,3,15,15],f32>
+    %int4_0 = torch.constant.int 4
+    %int4_1 = torch.constant.int 4
+    %17 = torch.prim.ListConstruct %int4_0, %int4_1 : (!torch.int, !torch.int) -> !torch.list<int>
+    %18 = torch.aten.convolution %arg0, %16, %10, %12, %17, %14, %false, %15, %int1 : !torch.vtensor<[1,3,227,227],f32>, !torch.vtensor<[64,3,15,15],f32>, !torch.vtensor<[64],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,64,56,56],f32>
+    %int0_2 = torch.constant.int 0
+    %int1_3 = torch.constant.int 1
+    %false_4 = torch.constant.bool false
+    %19 = torch.prim.ListConstruct %int1_3, %int1_3 : (!torch.int, !torch.int) -> !torch.list<int>
+    %20 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %21 = torch.aten.relu %18 : !torch.vtensor<[1,64,56,56],f32> -> !torch.vtensor<[1,64,56,56],f32>
+    %22 = torch.vtensor.literal(dense<0.000000e+00> : tensor<1x64x56x56xf32>) : !torch.vtensor<[1,64,56,56],f32>
+    %float0.000000e00 = torch.constant.float 0.000000e+00
+    %23 = torch.aten.add.Tensor %21, %22, %float0.000000e00 : !torch.vtensor<[1,64,56,56],f32>, !torch.vtensor<[1,64,56,56],f32>, !torch.float -> !torch.vtensor<[1,64,56,56],f32>
+    %24 = torch.vtensor.literal(dense_resource<__elided__> : tensor<64x64x7x7xf32>) : !torch.vtensor<[64,64,7,7],f32>
+    %25 = torch.vtensor.literal(dense<0.000000e+00> : tensor<64xf32>) : !torch.vtensor<[64],f32>
+    %int15 = torch.constant.int 15
+    %int5 = torch.constant.int 5
+    %26 = torch.prim.ListConstruct %int15, %int15 : (!torch.int, !torch.int) -> !torch.list<int>
+    %27 = torch.prim.ListConstruct %int5, %int5 : (!torch.int, !torch.int) -> !torch.list<int>
+    %28 = torch.vtensor.literal(dense_resource<__elided__> : tensor<64x64x9x9xf32>) : !torch.vtensor<[64,64,9,9],f32>
+    %int16 = torch.constant.int 16
+    %int16_5 = torch.constant.int 16
+    %29 = torch.prim.ListConstruct %int16, %int16_5 : (!torch.int, !torch.int) -> !torch.list<int>
+    %30 = torch.aten.convolution %23, %28, %25, %19, %29, %27, %false_4, %20, %int1_3 : !torch.vtensor<[1,64,56,56],f32>, !torch.vtensor<[64,64,9,9],f32>, !torch.vtensor<[64],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,64,56,56],f32>
+    %int0_6 = torch.constant.int 0
+    %int1_7 = torch.constant.int 1
+    %false_8 = torch.constant.bool false
+    %31 = torch.prim.ListConstruct %int1_7, %int1_7 : (!torch.int, !torch.int) -> !torch.list<int>
+    %32 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %33 = torch.aten.relu %30 : !torch.vtensor<[1,64,56,56],f32> -> !torch.vtensor<[1,64,56,56],f32>
+    %34 = torch.vtensor.literal(dense<0.000000e+00> : tensor<1x64x56x56xf32>) : !torch.vtensor<[1,64,56,56],f32>
+    %float0.000000e00_9 = torch.constant.float 0.000000e+00
+    %35 = torch.aten.add.Tensor %33, %34, %float0.000000e00_9 : !torch.vtensor<[1,64,56,56],f32>, !torch.vtensor<[1,64,56,56],f32>, !torch.float -> !torch.vtensor<[1,64,56,56],f32>
+    %36 = torch.vtensor.literal(dense_resource<__elided__> : tensor<64x64x3x3xf32>) : !torch.vtensor<[64,64,3,3],f32>
+    %37 = torch.vtensor.literal(dense<0.000000e+00> : tensor<64xf32>) : !torch.vtensor<[64],f32>
+    %int5_10 = torch.constant.int 5
+    %int5_11 = torch.constant.int 5
+    %38 = torch.prim.ListConstruct %int5_10, %int5_10 : (!torch.int, !torch.int) -> !torch.list<int>
+    %39 = torch.prim.ListConstruct %int5_11, %int5_11 : (!torch.int, !torch.int) -> !torch.list<int>
+    %40 = torch.vtensor.literal(dense_resource<__elided__> : tensor<64x64x7x7xf32>) : !torch.vtensor<[64,64,7,7],f32>
+    %int7 = torch.constant.int 7
+    %int7_12 = torch.constant.int 7
+    %41 = torch.prim.ListConstruct %int7, %int7_12 : (!torch.int, !torch.int) -> !torch.list<int>
+    %42 = torch.aten.convolution %35, %40, %37, %31, %41, %39, %false_8, %32, %int1_7 : !torch.vtensor<[1,64,56,56],f32>, !torch.vtensor<[64,64,7,7],f32>, !torch.vtensor<[64],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,64,56,56],f32>
+    %43 = torch.aten.relu %42 : !torch.vtensor<[1,64,56,56],f32> -> !torch.vtensor<[1,64,56,56],f32>
+    %44 = torch.vtensor.literal(dense<0.000000e+00> : tensor<1x64x56x56xf32>) : !torch.vtensor<[1,64,56,56],f32>
+    %float0.000000e00_13 = torch.constant.float 0.000000e+00
+    %45 = torch.aten.add.Tensor %43, %44, %float0.000000e00_13 : !torch.vtensor<[1,64,56,56],f32>, !torch.vtensor<[1,64,56,56],f32>, !torch.float -> !torch.vtensor<[1,64,56,56],f32>
+    %46 = torch.prim.ListConstruct %int3, %int3 : (!torch.int, !torch.int) -> !torch.list<int>
+    %47 = torch.prim.ListConstruct %int0, %int0 : (!torch.int, !torch.int) -> !torch.list<int>
+    %48 = torch.aten.max_pool2d %45, %46, %13, %47, %14, %false : !torch.vtensor<[1,64,56,56],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool -> !torch.vtensor<[1,64,27,27],f32>
+    %49 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %50 = torch.vtensor.literal(dense_resource<__elided__> : tensor<192x64x11x11xf32>) : !torch.vtensor<[192,64,11,11],f32>
+    %int5_14 = torch.constant.int 5
+    %int5_15 = torch.constant.int 5
+    %51 = torch.prim.ListConstruct %int5_14, %int5_15 : (!torch.int, !torch.int) -> !torch.list<int>
+    %52 = torch.aten.convolution %48, %50, %8, %14, %51, %14, %false, %49, %int1 : !torch.vtensor<[1,64,27,27],f32>, !torch.vtensor<[192,64,11,11],f32>, !torch.vtensor<[192],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,192,27,27],f32>
+    %int0_16 = torch.constant.int 0
+    %int1_17 = torch.constant.int 1
+    %false_18 = torch.constant.bool false
+    %53 = torch.prim.ListConstruct %int1_17, %int1_17 : (!torch.int, !torch.int) -> !torch.list<int>
+    %54 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %55 = torch.aten.relu %52 : !torch.vtensor<[1,192,27,27],f32> -> !torch.vtensor<[1,192,27,27],f32>
+    %56 = torch.vtensor.literal(dense<0.000000e+00> : tensor<1x192x27x27xf32>) : !torch.vtensor<[1,192,27,27],f32>
+    %float0.000000e00_19 = torch.constant.float 0.000000e+00
+    %57 = torch.aten.add.Tensor %55, %56, %float0.000000e00_19 : !torch.vtensor<[1,192,27,27],f32>, !torch.vtensor<[1,192,27,27],f32>, !torch.float -> !torch.vtensor<[1,192,27,27],f32>
+    %58 = torch.vtensor.literal(dense_resource<__elided__> : tensor<192x192x7x7xf32>) : !torch.vtensor<[192,192,7,7],f32>
+    %59 = torch.vtensor.literal(dense<0.000000e+00> : tensor<192xf32>) : !torch.vtensor<[192],f32>
+    %int12 = torch.constant.int 12
+    %int4_20 = torch.constant.int 4
+    %60 = torch.prim.ListConstruct %int12, %int12 : (!torch.int, !torch.int) -> !torch.list<int>
+    %61 = torch.prim.ListConstruct %int4_20, %int4_20 : (!torch.int, !torch.int) -> !torch.list<int>
+    %62 = torch.vtensor.literal(dense_resource<__elided__> : tensor<192x192x15x15xf32>) : !torch.vtensor<[192,192,15,15],f32>
+    %int16_21 = torch.constant.int 16
+    %int16_22 = torch.constant.int 16
+    %63 = torch.prim.ListConstruct %int16_21, %int16_22 : (!torch.int, !torch.int) -> !torch.list<int>
+    %64 = torch.aten.convolution %57, %62, %59, %53, %63, %61, %false_18, %54, %int1_17 : !torch.vtensor<[1,192,27,27],f32>, !torch.vtensor<[192,192,15,15],f32>, !torch.vtensor<[192],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,192,27,27],f32>
+    %65 = torch.aten.relu %64 : !torch.vtensor<[1,192,27,27],f32> -> !torch.vtensor<[1,192,27,27],f32>
+    %66 = torch.vtensor.literal(dense<0.000000e+00> : tensor<1x192x27x27xf32>) : !torch.vtensor<[1,192,27,27],f32>
+    %float0.000000e00_23 = torch.constant.float 0.000000e+00
+    %67 = torch.aten.add.Tensor %65, %66, %float0.000000e00_23 : !torch.vtensor<[1,192,27,27],f32>, !torch.vtensor<[1,192,27,27],f32>, !torch.float -> !torch.vtensor<[1,192,27,27],f32>
+    %68 = torch.aten.max_pool2d %67, %46, %13, %47, %14, %false : !torch.vtensor<[1,192,27,27],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool -> !torch.vtensor<[1,192,13,13],f32>
+    %69 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %70 = torch.vtensor.literal(dense_resource<__elided__> : tensor<314x192x3x3xf32>) : !torch.vtensor<[314,192,3,3],f32>
+    %71 = torch.vtensor.literal(dense_resource<__elided__> : tensor<314xf32>) : !torch.vtensor<[314],f32>
+    %72 = torch.aten.convolution %68, %70, %71, %14, %14, %14, %false, %69, %int1 : !torch.vtensor<[1,192,13,13],f32>, !torch.vtensor<[314,192,3,3],f32>, !torch.vtensor<[314],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,314,13,13],f32>
+    %73 = torch.vtensor.literal(dense_resource<__elided__> : tensor<47x192x3x3xf32>) : !torch.vtensor<[47,192,3,3],f32>
+    %74 = torch.vtensor.literal(dense_resource<__elided__> : tensor<47xf32>) : !torch.vtensor<[47],f32>
+    %75 = torch.aten.convolution %68, %73, %74, %14, %14, %14, %false, %69, %int1 : !torch.vtensor<[1,192,13,13],f32>, !torch.vtensor<[47,192,3,3],f32>, !torch.vtensor<[47],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,47,13,13],f32>
+    %76 = torch.vtensor.literal(dense_resource<__elided__> : tensor<6x192x3x3xf32>) : !torch.vtensor<[6,192,3,3],f32>
+    %77 = torch.vtensor.literal(dense<[0.00897119939, -0.0126566421, -0.00935503095, -0.0219814926, 0.0136805912, 0.0231463276]> : tensor<6xf32>) : !torch.vtensor<[6],f32>
+    %78 = torch.aten.convolution %68, %76, %77, %14, %14, %14, %false, %69, %int1 : !torch.vtensor<[1,192,13,13],f32>, !torch.vtensor<[6,192,3,3],f32>, !torch.vtensor<[6],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,6,13,13],f32>
+    %79 = torch.vtensor.literal(dense_resource<__elided__> : tensor<2x192x3x3xf32>) : !torch.vtensor<[2,192,3,3],f32>
+    %80 = torch.vtensor.literal(dense<[0.0227824021, -0.0162591711]> : tensor<2xf32>) : !torch.vtensor<[2],f32>
+    %81 = torch.aten.convolution %68, %79, %80, %14, %14, %14, %false, %69, %int1 : !torch.vtensor<[1,192,13,13],f32>, !torch.vtensor<[2,192,3,3],f32>, !torch.vtensor<[2],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,2,13,13],f32>
+    %82 = torch.vtensor.literal(dense_resource<__elided__> : tensor<8x192x3x3xf32>) : !torch.vtensor<[8,192,3,3],f32>
+    %83 = torch.vtensor.literal(dense<[-0.0128488746, -0.0149087133, -0.0153228082, 0.0186642669, -0.0194006432, -0.0239896234, -0.0221313871, -0.00654705567]> : tensor<8xf32>) : !torch.vtensor<[8],f32>
+    %84 = torch.aten.convolution %68, %82, %83, %14, %14, %14, %false, %69, %int1 : !torch.vtensor<[1,192,13,13],f32>, !torch.vtensor<[8,192,3,3],f32>, !torch.vtensor<[8],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,8,13,13],f32>
+    %85 = torch.vtensor.literal(dense_resource<__elided__> : tensor<3x192x3x3xf32>) : !torch.vtensor<[3,192,3,3],f32>
+    %86 = torch.vtensor.literal(dense<[0.010135469, -0.0181263294, 0.00391804148]> : tensor<3xf32>) : !torch.vtensor<[3],f32>
+    %87 = torch.aten.convolution %68, %85, %86, %14, %14, %14, %false, %69, %int1 : !torch.vtensor<[1,192,13,13],f32>, !torch.vtensor<[3,192,3,3],f32>, !torch.vtensor<[3],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,3,13,13],f32>
+    %88 = torch.vtensor.literal(dense_resource<__elided__> : tensor<2x192x3x3xf32>) : !torch.vtensor<[2,192,3,3],f32>
+    %89 = torch.vtensor.literal(dense<[0.00212977408, -0.0160533879]> : tensor<2xf32>) : !torch.vtensor<[2],f32>
+    %90 = torch.aten.convolution %68, %88, %89, %14, %14, %14, %false, %69, %int1 : !torch.vtensor<[1,192,13,13],f32>, !torch.vtensor<[2,192,3,3],f32>, !torch.vtensor<[2],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,2,13,13],f32>
+    %91 = torch.vtensor.literal(dense_resource<__elided__> : tensor<1x192x3x3xf32>) : !torch.vtensor<[1,192,3,3],f32>
+    %92 = torch.vtensor.literal(dense<0.00408792309> : tensor<1xf32>) : !torch.vtensor<[1],f32>
+    %93 = torch.aten.convolution %68, %91, %92, %14, %14, %14, %false, %69, %int1 : !torch.vtensor<[1,192,13,13],f32>, !torch.vtensor<[1,192,3,3],f32>, !torch.vtensor<[1],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,1,13,13],f32>
+    %94 = torch.vtensor.literal(dense_resource<__elided__> : tensor<1x192x3x3xf32>) : !torch.vtensor<[1,192,3,3],f32>
+    %95 = torch.vtensor.literal(dense<-6.87420659E-4> : tensor<1xf32>) : !torch.vtensor<[1],f32>
+    %96 = torch.aten.convolution %68, %94, %95, %14, %14, %14, %false, %69, %int1 : !torch.vtensor<[1,192,13,13],f32>, !torch.vtensor<[1,192,3,3],f32>, !torch.vtensor<[1],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,1,13,13],f32>
+    %97 = torch.prim.ListConstruct %72, %75, %78, %81, %84, %87, %90, %93, %96 : (!torch.vtensor<[1,314,13,13],f32>, !torch.vtensor<[1,47,13,13],f32>, !torch.vtensor<[1,6,13,13],f32>, !torch.vtensor<[1,2,13,13],f32>, !torch.vtensor<[1,8,13,13],f32>, !torch.vtensor<[1,3,13,13],f32>, !torch.vtensor<[1,2,13,13],f32>, !torch.vtensor<[1,1,13,13],f32>, !torch.vtensor<[1,1,13,13],f32>) -> !torch.list<vtensor>
+    %int1_24 = torch.constant.int 1
+    %98 = torch.aten.cat %97, %int1_24 : !torch.list<vtensor>, !torch.int -> !torch.vtensor<[1,384,13,13],f32>
+    %99 = torch.aten.relu %98 : !torch.vtensor<[1,384,13,13],f32> -> !torch.vtensor<[1,384,13,13],f32>
+    %100 = torch.vtensor.literal(dense<0.000000e+00> : tensor<1x384x13x13xf32>) : !torch.vtensor<[1,384,13,13],f32>
+    %float0.000000e00_25 = torch.constant.float 0.000000e+00
+    %101 = torch.aten.add.Tensor %99, %100, %float0.000000e00_25 : !torch.vtensor<[1,384,13,13],f32>, !torch.vtensor<[1,384,13,13],f32>, !torch.float -> !torch.vtensor<[1,384,13,13],f32>
+    %102 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %103 = torch.aten.convolution %101, %7, %6, %14, %14, %14, %false, %102, %int1 : !torch.vtensor<[1,384,13,13],f32>, !torch.vtensor<[256,384,3,3],f32>, !torch.vtensor<[256],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,256,13,13],f32>
+    %104 = torch.aten.relu %103 : !torch.vtensor<[1,256,13,13],f32> -> !torch.vtensor<[1,256,13,13],f32>
+    %105 = torch.vtensor.literal(dense<0.000000e+00> : tensor<1x256x13x13xf32>) : !torch.vtensor<[1,256,13,13],f32>
+    %float0.000000e00_26 = torch.constant.float 0.000000e+00
+    %106 = torch.aten.add.Tensor %104, %105, %float0.000000e00_26 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[1,256,13,13],f32>, !torch.float -> !torch.vtensor<[1,256,13,13],f32>
+    %107 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %108 = torch.vtensor.literal(dense_resource<__elided__> : tensor<198x256x3x3xf32>) : !torch.vtensor<[198,256,3,3],f32>
+    %109 = torch.vtensor.literal(dense_resource<__elided__> : tensor<198xf32>) : !torch.vtensor<[198],f32>
+    %110 = torch.aten.convolution %106, %108, %109, %14, %14, %14, %false, %107, %int1 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[198,256,3,3],f32>, !torch.vtensor<[198],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,198,13,13],f32>
+    %111 = torch.vtensor.literal(dense_resource<__elided__> : tensor<3x256x3x3xf32>) : !torch.vtensor<[3,256,3,3],f32>
+    %112 = torch.vtensor.literal(dense<[0.0155182164, 0.0186400767, 0.015038779]> : tensor<3xf32>) : !torch.vtensor<[3],f32>
+    %113 = torch.aten.convolution %106, %111, %112, %14, %14, %14, %false, %107, %int1 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[3,256,3,3],f32>, !torch.vtensor<[3],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,3,13,13],f32>
+    %114 = torch.vtensor.literal(dense_resource<__elided__> : tensor<35x256x3x3xf32>) : !torch.vtensor<[35,256,3,3],f32>
+    %115 = torch.vtensor.literal(dense_resource<__elided__> : tensor<35xf32>) : !torch.vtensor<[35],f32>
+    %116 = torch.aten.convolution %106, %114, %115, %14, %14, %14, %false, %107, %int1 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[35,256,3,3],f32>, !torch.vtensor<[35],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,35,13,13],f32>
+    %117 = torch.vtensor.literal(dense_resource<__elided__> : tensor<13x256x3x3xf32>) : !torch.vtensor<[13,256,3,3],f32>
+    %118 = torch.vtensor.literal(dense_resource<__elided__> : tensor<13xf32>) : !torch.vtensor<[13],f32>
+    %119 = torch.aten.convolution %106, %117, %118, %14, %14, %14, %false, %107, %int1 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[13,256,3,3],f32>, !torch.vtensor<[13],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,13,13,13],f32>
+    %120 = torch.vtensor.literal(dense_resource<__elided__> : tensor<3x256x3x3xf32>) : !torch.vtensor<[3,256,3,3],f32>
+    %121 = torch.vtensor.literal(dense<[-0.0180098675, -0.0181358643, -0.0117051136]> : tensor<3xf32>) : !torch.vtensor<[3],f32>
+    %122 = torch.aten.convolution %106, %120, %121, %14, %14, %14, %false, %107, %int1 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[3,256,3,3],f32>, !torch.vtensor<[3],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,3,13,13],f32>
+    %123 = torch.vtensor.literal(dense_resource<__elided__> : tensor<2x256x3x3xf32>) : !torch.vtensor<[2,256,3,3],f32>
+    %124 = torch.vtensor.literal(dense<[-0.0158662405, -0.0188236535]> : tensor<2xf32>) : !torch.vtensor<[2],f32>
+    %125 = torch.aten.convolution %106, %123, %124, %14, %14, %14, %false, %107, %int1 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[2,256,3,3],f32>, !torch.vtensor<[2],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,2,13,13],f32>
+    %126 = torch.vtensor.literal(dense_resource<__elided__> : tensor<1x256x3x3xf32>) : !torch.vtensor<[1,256,3,3],f32>
+    %127 = torch.vtensor.literal(dense<-0.00923929177> : tensor<1xf32>) : !torch.vtensor<[1],f32>
+    %128 = torch.vtensor.literal(dense<0.000000e+00> : tensor<256x256x1x1xf32>) : !torch.vtensor<[256,256,1,1],f32>
+    %129 = torch.vtensor.literal(dense<0.000000e+00> : tensor<256xf32>) : !torch.vtensor<[256],f32>
+    %130 = torch.aten.convolution %106, %128, %129, %14, %14, %14, %false, %107, %int1 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[256,256,1,1],f32>, !torch.vtensor<[256],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,256,13,13],f32>
+    %float0.000000e00_27 = torch.constant.float 0.000000e+00
+    %131 = torch.aten.add.Tensor %106, %130, %float0.000000e00_27 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[1,256,13,13],f32>, !torch.float -> !torch.vtensor<[1,256,13,13],f32>
+    %132 = torch.aten.convolution %131, %126, %127, %14, %14, %14, %false, %107, %int1 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[1,256,3,3],f32>, !torch.vtensor<[1],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,1,13,13],f32>
+    %133 = torch.vtensor.literal(dense_resource<__elided__> : tensor<1x256x3x3xf32>) : !torch.vtensor<[1,256,3,3],f32>
+    %134 = torch.vtensor.literal(dense<-0.017165672> : tensor<1xf32>) : !torch.vtensor<[1],f32>
+    %135 = torch.aten.convolution %106, %133, %134, %14, %14, %14, %false, %107, %int1 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[1,256,3,3],f32>, !torch.vtensor<[1],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,1,13,13],f32>
+    %136 = torch.prim.ListConstruct %110, %113, %116, %119, %122, %125, %132, %135 : (!torch.vtensor<[1,198,13,13],f32>, !torch.vtensor<[1,3,13,13],f32>, !torch.vtensor<[1,35,13,13],f32>, !torch.vtensor<[1,13,13,13],f32>, !torch.vtensor<[1,3,13,13],f32>, !torch.vtensor<[1,2,13,13],f32>, !torch.vtensor<[1,1,13,13],f32>, !torch.vtensor<[1,1,13,13],f32>) -> !torch.list<vtensor>
+    %int1_28 = torch.constant.int 1
+    %137 = torch.aten.cat %136, %int1_28 : !torch.list<vtensor>, !torch.int -> !torch.vtensor<[1,256,13,13],f32>
+    %138 = torch.aten.relu %137 : !torch.vtensor<[1,256,13,13],f32> -> !torch.vtensor<[1,256,13,13],f32>
+    %139 = torch.vtensor.literal(dense<0.000000e+00> : tensor<1x256x13x13xf32>) : !torch.vtensor<[1,256,13,13],f32>
+    %float0.000000e00_29 = torch.constant.float 0.000000e+00
+    %140 = torch.aten.add.Tensor %138, %139, %float0.000000e00_29 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[1,256,13,13],f32>, !torch.float -> !torch.vtensor<[1,256,13,13],f32>
+    %141 = torch.aten.max_pool2d %140, %46, %13, %47, %14, %false : !torch.vtensor<[1,256,13,13],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool -> !torch.vtensor<[1,256,6,6],f32>
+    %142 = torch.prim.ListConstruct %int1, %int9216 : (!torch.int, !torch.int) -> !torch.list<int>
+    %143 = torch.aten.view %141, %142 : !torch.vtensor<[1,256,6,6],f32>, !torch.list<int> -> !torch.vtensor<[1,9216],f32>
+    %144 = torch.aten.transpose.int %5, %int0, %int1 : !torch.vtensor<[4096,9216],f32>, !torch.int, !torch.int -> !torch.vtensor<[9216,4096],f32>
+    %145 = torch.aten.mm %143, %144 : !torch.vtensor<[1,9216],f32>, !torch.vtensor<[9216,4096],f32> -> !torch.vtensor<[1,4096],f32>
+    %146 = torch.aten.add.Tensor %145, %4, %float1.000000e00 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[4096],f32>, !torch.float -> !torch.vtensor<[1,4096],f32>
+    %147 = torch.aten.relu %146 : !torch.vtensor<[1,4096],f32> -> !torch.vtensor<[1,4096],f32>
+    %148 = torch.vtensor.literal(dense<0.000000e+00> : tensor<1x4096xf32>) : !torch.vtensor<[1,4096],f32>
+    %float0.000000e00_30 = torch.constant.float 0.000000e+00
+    %149 = torch.aten.add.Tensor %147, %148, %float0.000000e00_30 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[1,4096],f32>, !torch.float -> !torch.vtensor<[1,4096],f32>
+    %150 = torch.aten.transpose.int %3, %int0, %int1 : !torch.vtensor<[4096,4096],f32>, !torch.int, !torch.int -> !torch.vtensor<[4096,4096],f32>
+    %151 = torch.aten.mm %149, %150 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[4096,4096],f32> -> !torch.vtensor<[1,4096],f32>
+    %152 = torch.aten.add.Tensor %151, %2, %float1.000000e00 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[4096],f32>, !torch.float -> !torch.vtensor<[1,4096],f32>
+    %153 = torch.aten.relu %152 : !torch.vtensor<[1,4096],f32> -> !torch.vtensor<[1,4096],f32>
+    %154 = torch.vtensor.literal(dense<0.000000e+00> : tensor<1x4096xf32>) : !torch.vtensor<[1,4096],f32>
+    %float0.000000e00_31 = torch.constant.float 0.000000e+00
+    %155 = torch.aten.add.Tensor %153, %154, %float0.000000e00_31 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[1,4096],f32>, !torch.float -> !torch.vtensor<[1,4096],f32>
+    %156 = torch.aten.transpose.int %1, %int0, %int1 : !torch.vtensor<[1000,4096],f32>, !torch.int, !torch.int -> !torch.vtensor<[4096,1000],f32>
+    %157 = torch.aten.mm %155, %156 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[4096,1000],f32> -> !torch.vtensor<[1,1000],f32>
+    %158 = torch.aten.add.Tensor %157, %0, %float1.000000e00 : !torch.vtensor<[1,1000],f32>, !torch.vtensor<[1000],f32>, !torch.float -> !torch.vtensor<[1,1000],f32>
+    return %158 : !torch.vtensor<[1,1000],f32>
+  }
+}
+
+Obfuscation Passes:
+    WidenLayerPass
+    InsertConvsPass
+    Jump this Obfuscation
+    InsertConvsPass
+    Jump this Obfuscation
+    InsertConvsPass
+    InsertSkipPass
+    InsertLinearsPass
+    KernelWideningPass
+    Jump this Obfuscation
+    Jump this Obfuscation
+    Jump this Obfuscation
+    Jump this Obfuscation
+    KernelWideningPass
+    DummyAdditionPass
+16
+1
+1
+1
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+after DeObfuscations
+module attributes {torch.debug_module_name = "AlexNet"} {
+  func.func @forward(%arg0: !torch.vtensor<[1,3,227,227],f32>) -> !torch.vtensor<[1,1000],f32> {
+    %int0 = torch.constant.int 0
+    %int1 = torch.constant.int 1
+    %float1.000000e00 = torch.constant.float 1.000000e+00
+    %false = torch.constant.bool false
+    %0 = torch.vtensor.literal(dense_resource<__elided__> : tensor<1000xf32>) : !torch.vtensor<[1000],f32>
+    %1 = torch.vtensor.literal(dense_resource<__elided__> : tensor<1000x4096xf32>) : !torch.vtensor<[1000,4096],f32>
+    %2 = torch.vtensor.literal(dense_resource<__elided__> : tensor<4096xf32>) : !torch.vtensor<[4096],f32>
+    %3 = torch.vtensor.literal(dense_resource<__elided__> : tensor<4096x4096xf32>) : !torch.vtensor<[4096,4096],f32>
+    %4 = torch.vtensor.literal(dense_resource<__elided__> : tensor<4096xf32>) : !torch.vtensor<[4096],f32>
+    %5 = torch.vtensor.literal(dense_resource<__elided__> : tensor<4096x9216xf32>) : !torch.vtensor<[4096,9216],f32>
+    %6 = torch.vtensor.literal(dense_resource<__elided__> : tensor<256xf32>) : !torch.vtensor<[256],f32>
+    %7 = torch.vtensor.literal(dense_resource<__elided__> : tensor<256x384x3x3xf32>) : !torch.vtensor<[256,384,3,3],f32>
+    %8 = torch.vtensor.literal(dense_resource<__elided__> : tensor<192xf32>) : !torch.vtensor<[192],f32>
+    %9 = torch.vtensor.literal(dense_resource<__elided__> : tensor<64xf32>) : !torch.vtensor<[64],f32>
+    %int2 = torch.constant.int 2
+    %int4 = torch.constant.int 4
+    %int3 = torch.constant.int 3
+    %int9216 = torch.constant.int 9216
+    %10 = torch.prim.ListConstruct %int4, %int4 : (!torch.int, !torch.int) -> !torch.list<int>
+    %11 = torch.prim.ListConstruct %int2, %int2 : (!torch.int, !torch.int) -> !torch.list<int>
+    %12 = torch.prim.ListConstruct %int1, %int1 : (!torch.int, !torch.int) -> !torch.list<int>
+    %13 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %int2_0 = torch.constant.int 2
+    %int2_1 = torch.constant.int 2
+    %14 = torch.prim.ListConstruct %int2_0, %int2_1 : (!torch.int, !torch.int) -> !torch.list<int>
+    %15 = torch.vtensor.literal(dense_resource<__elided__> : tensor<64x3x11x11xf32>) : !torch.vtensor<[64,3,11,11],f32>
+    %16 = torch.aten.convolution %arg0, %15, %9, %10, %14, %12, %false, %13, %int1 : !torch.vtensor<[1,3,227,227],f32>, !torch.vtensor<[64,3,11,11],f32>, !torch.vtensor<[64],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,64,56,56],f32>
+    %17 = torch.aten.relu %16 : !torch.vtensor<[1,64,56,56],f32> -> !torch.vtensor<[1,64,56,56],f32>
+    %18 = torch.prim.ListConstruct %int3, %int3 : (!torch.int, !torch.int) -> !torch.list<int>
+    %19 = torch.prim.ListConstruct %int0, %int0 : (!torch.int, !torch.int) -> !torch.list<int>
+    %20 = torch.aten.max_pool2d %17, %18, %11, %19, %12, %false : !torch.vtensor<[1,64,56,56],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool -> !torch.vtensor<[1,64,27,27],f32>
+    %21 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %int2_2 = torch.constant.int 2
+    %int2_3 = torch.constant.int 2
+    %22 = torch.prim.ListConstruct %int2_2, %int2_3 : (!torch.int, !torch.int) -> !torch.list<int>
+    %23 = torch.vtensor.literal(dense_resource<__elided__> : tensor<192x64x5x5xf32>) : !torch.vtensor<[192,64,5,5],f32>
+    %24 = torch.aten.convolution %20, %23, %8, %12, %22, %12, %false, %21, %int1 : !torch.vtensor<[1,64,27,27],f32>, !torch.vtensor<[192,64,5,5],f32>, !torch.vtensor<[192],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,192,27,27],f32>
+    %25 = torch.aten.relu %24 : !torch.vtensor<[1,192,27,27],f32> -> !torch.vtensor<[1,192,27,27],f32>
+    %26 = torch.aten.max_pool2d %25, %18, %11, %19, %12, %false : !torch.vtensor<[1,192,27,27],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool -> !torch.vtensor<[1,192,13,13],f32>
+    %27 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %28 = torch.vtensor.literal(dense_resource<__elided__> : tensor<384x192x3x3xf32>) : !torch.vtensor<[384,192,3,3],f32>
+    %29 = torch.vtensor.literal(dense_resource<__elided__> : tensor<384xf32>) : !torch.vtensor<[384],f32>
+    %30 = torch.aten.convolution %26, %28, %29, %12, %12, %12, %false, %27, %int1 : !torch.vtensor<[1,192,13,13],f32>, !torch.vtensor<[384,192,3,3],f32>, !torch.vtensor<[384],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,384,13,13],f32>
+    %31 = torch.aten.relu %30 : !torch.vtensor<[1,384,13,13],f32> -> !torch.vtensor<[1,384,13,13],f32>
+    %32 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %33 = torch.aten.convolution %31, %7, %6, %12, %12, %12, %false, %32, %int1 : !torch.vtensor<[1,384,13,13],f32>, !torch.vtensor<[256,384,3,3],f32>, !torch.vtensor<[256],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,256,13,13],f32>
+    %34 = torch.aten.relu %33 : !torch.vtensor<[1,256,13,13],f32> -> !torch.vtensor<[1,256,13,13],f32>
+    %35 = torch.prim.ListConstruct  : () -> !torch.list<int>
+    %36 = torch.vtensor.literal(dense_resource<__elided__> : tensor<256x256x3x3xf32>) : !torch.vtensor<[256,256,3,3],f32>
+    %37 = torch.vtensor.literal(dense_resource<__elided__> : tensor<256xf32>) : !torch.vtensor<[256],f32>
+    %38 = torch.aten.convolution %34, %36, %37, %12, %12, %12, %false, %35, %int1 : !torch.vtensor<[1,256,13,13],f32>, !torch.vtensor<[256,256,3,3],f32>, !torch.vtensor<[256],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool, !torch.list<int>, !torch.int -> !torch.vtensor<[1,256,13,13],f32>
+    %39 = torch.aten.relu %38 : !torch.vtensor<[1,256,13,13],f32> -> !torch.vtensor<[1,256,13,13],f32>
+    %40 = torch.aten.max_pool2d %39, %18, %11, %19, %12, %false : !torch.vtensor<[1,256,13,13],f32>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.list<int>, !torch.bool -> !torch.vtensor<[1,256,6,6],f32>
+    %41 = torch.prim.ListConstruct %int1, %int9216 : (!torch.int, !torch.int) -> !torch.list<int>
+    %42 = torch.aten.view %40, %41 : !torch.vtensor<[1,256,6,6],f32>, !torch.list<int> -> !torch.vtensor<[1,9216],f32>
+    %43 = torch.aten.transpose.int %5, %int0, %int1 : !torch.vtensor<[4096,9216],f32>, !torch.int, !torch.int -> !torch.vtensor<[9216,4096],f32>
+    %44 = torch.aten.mm %42, %43 : !torch.vtensor<[1,9216],f32>, !torch.vtensor<[9216,4096],f32> -> !torch.vtensor<[1,4096],f32>
+    %45 = torch.aten.add.Tensor %44, %4, %float1.000000e00 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[4096],f32>, !torch.float -> !torch.vtensor<[1,4096],f32>
+    %46 = torch.aten.relu %45 : !torch.vtensor<[1,4096],f32> -> !torch.vtensor<[1,4096],f32>
+    %47 = torch.aten.transpose.int %3, %int0, %int1 : !torch.vtensor<[4096,4096],f32>, !torch.int, !torch.int -> !torch.vtensor<[4096,4096],f32>
+    %48 = torch.aten.mm %46, %47 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[4096,4096],f32> -> !torch.vtensor<[1,4096],f32>
+    %49 = torch.aten.add.Tensor %48, %2, %float1.000000e00 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[4096],f32>, !torch.float -> !torch.vtensor<[1,4096],f32>
+    %50 = torch.aten.relu %49 : !torch.vtensor<[1,4096],f32> -> !torch.vtensor<[1,4096],f32>
+    %51 = torch.aten.transpose.int %1, %int0, %int1 : !torch.vtensor<[1000,4096],f32>, !torch.int, !torch.int -> !torch.vtensor<[4096,1000],f32>
+    %52 = torch.aten.mm %50, %51 : !torch.vtensor<[1,4096],f32>, !torch.vtensor<[4096,1000],f32> -> !torch.vtensor<[1,1000],f32>
+    %53 = torch.aten.add.Tensor %52, %0, %float1.000000e00 : !torch.vtensor<[1,1000],f32>, !torch.vtensor<[1000],f32>, !torch.float -> !torch.vtensor<[1,1000],f32>
+    return %53 : !torch.vtensor<[1,1000],f32>
+  }
+}
+
+================
+after lower to linalg
+================
+#map = affine_map<(d0, d1, d2, d3) -> (d1)>
+#map1 = affine_map<(d0, d1, d2, d3) -> (d0, d1, d2, d3)>
+#map2 = affine_map<(d0, d1, d2, d3) -> (0, d1, d2, d3)>
+#map3 = affine_map<(d0, d1) -> (d0, d1)>
+#map4 = affine_map<(d0, d1) -> (d1, d0)>
+#map5 = affine_map<(d0, d1) -> (0, d1)>
+#map6 = affine_map<(d0, d1) -> (d1)>
+module attributes {torch.debug_module_name = "AlexNet"} {
+  ml_program.global private mutable @global_seed(dense<0> : tensor<i64>) : tensor<i64>
+  func.func @forward(%arg0: tensor<1x3x227x227xf32>) -> tensor<1x1000xf32> {
+    %cst = arith.constant dense_resource<__elided__> : tensor<1000xf32>
+    %cst_0 = arith.constant dense_resource<__elided__> : tensor<1000x4096xf32>
+    %cst_1 = arith.constant dense_resource<__elided__> : tensor<4096xf32>
+    %cst_2 = arith.constant dense_resource<__elided__> : tensor<4096x4096xf32>
+    %cst_3 = arith.constant dense_resource<__elided__> : tensor<4096xf32>
+    %cst_4 = arith.constant dense_resource<__elided__> : tensor<4096x9216xf32>
+    %cst_5 = arith.constant dense_resource<__elided__> : tensor<256xf32>
+    %cst_6 = arith.constant dense_resource<__elided__> : tensor<256x384x3x3xf32>
+    %cst_7 = arith.constant dense_resource<__elided__> : tensor<192xf32>
+    %cst_8 = arith.constant dense_resource<__elided__> : tensor<64xf32>
+    %cst_9 = arith.constant dense_resource<__elided__> : tensor<64x3x11x11xf32>
+    %cst_10 = arith.constant 0.000000e+00 : f32
+    %cst_11 = arith.constant -3.40282347E+38 : f32
+    %cst_12 = arith.constant dense_resource<__elided__> : tensor<192x64x5x5xf32>
+    %cst_13 = arith.constant dense_resource<__elided__> : tensor<384x192x3x3xf32>
+    %cst_14 = arith.constant dense_resource<__elided__> : tensor<384xf32>
+    %cst_15 = arith.constant dense_resource<__elided__> : tensor<256x256x3x3xf32>
+    %cst_16 = arith.constant dense_resource<__elided__> : tensor<256xf32>
+    %c2 = arith.constant 2 : index
+    %c0 = arith.constant 0 : index
+    %c1 = arith.constant 1 : index
+    %padded = tensor.pad %arg0 low[0, 0, 2, 2] high[0, 0, 2, 2] {
+    ^bb0(%arg1: index, %arg2: index, %arg3: index, %arg4: index):
+      tensor.yield %cst_10 : f32
+    } : tensor<1x3x227x227xf32> to tensor<1x3x231x231xf32>
+    %0 = tensor.empty() : tensor<1x64x56x56xf32>
+    %1 = linalg.generic {indexing_maps = [#map, #map1], iterator_types = ["parallel", "parallel", "parallel", "parallel"]} ins(%cst_8 : tensor<64xf32>) outs(%0 : tensor<1x64x56x56xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      linalg.yield %in : f32
+    } -> tensor<1x64x56x56xf32>
+    %2 = linalg.conv_2d_nchw_fchw {dilations = dense<1> : vector<2xi64>, strides = dense<4> : vector<2xi64>} ins(%padded, %cst_9 : tensor<1x3x231x231xf32>, tensor<64x3x11x11xf32>) outs(%1 : tensor<1x64x56x56xf32>) -> tensor<1x64x56x56xf32>
+    %3 = linalg.generic {indexing_maps = [#map2, #map1], iterator_types = ["parallel", "parallel", "parallel", "parallel"]} ins(%2 : tensor<1x64x56x56xf32>) outs(%0 : tensor<1x64x56x56xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      %47 = arith.cmpf ugt, %in, %cst_10 : f32
+      %48 = arith.select %47, %in, %cst_10 : f32
+      linalg.yield %48 : f32
+    } -> tensor<1x64x56x56xf32>
+    %4 = tensor.empty() : tensor<1x64x27x27xf32>
+    %5 = linalg.fill ins(%cst_11 : f32) outs(%4 : tensor<1x64x27x27xf32>) -> tensor<1x64x27x27xf32>
+    %6 = tensor.empty() : tensor<3x3xf32>
+    %7 = linalg.pooling_nchw_max {dilations = dense<1> : vector<2xi64>, strides = dense<2> : vector<2xi64>} ins(%3, %6 : tensor<1x64x56x56xf32>, tensor<3x3xf32>) outs(%5 : tensor<1x64x27x27xf32>) -> tensor<1x64x27x27xf32>
+    %padded_17 = tensor.pad %7 low[0, 0, 2, 2] high[0, 0, 2, 2] {
+    ^bb0(%arg1: index, %arg2: index, %arg3: index, %arg4: index):
+      tensor.yield %cst_10 : f32
+    } : tensor<1x64x27x27xf32> to tensor<1x64x31x31xf32>
+    %8 = tensor.empty() : tensor<1x192x27x27xf32>
+    %9 = linalg.generic {indexing_maps = [#map, #map1], iterator_types = ["parallel", "parallel", "parallel", "parallel"]} ins(%cst_7 : tensor<192xf32>) outs(%8 : tensor<1x192x27x27xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      linalg.yield %in : f32
+    } -> tensor<1x192x27x27xf32>
+    %10 = linalg.conv_2d_nchw_fchw {dilations = dense<1> : vector<2xi64>, strides = dense<1> : vector<2xi64>} ins(%padded_17, %cst_12 : tensor<1x64x31x31xf32>, tensor<192x64x5x5xf32>) outs(%9 : tensor<1x192x27x27xf32>) -> tensor<1x192x27x27xf32>
+    %11 = linalg.generic {indexing_maps = [#map2, #map1], iterator_types = ["parallel", "parallel", "parallel", "parallel"]} ins(%10 : tensor<1x192x27x27xf32>) outs(%8 : tensor<1x192x27x27xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      %47 = arith.cmpf ugt, %in, %cst_10 : f32
+      %48 = arith.select %47, %in, %cst_10 : f32
+      linalg.yield %48 : f32
+    } -> tensor<1x192x27x27xf32>
+    %12 = tensor.empty() : tensor<1x192x13x13xf32>
+    %13 = linalg.fill ins(%cst_11 : f32) outs(%12 : tensor<1x192x13x13xf32>) -> tensor<1x192x13x13xf32>
+    %14 = linalg.pooling_nchw_max {dilations = dense<1> : vector<2xi64>, strides = dense<2> : vector<2xi64>} ins(%11, %6 : tensor<1x192x27x27xf32>, tensor<3x3xf32>) outs(%13 : tensor<1x192x13x13xf32>) -> tensor<1x192x13x13xf32>
+    %padded_18 = tensor.pad %14 low[0, 0, 1, 1] high[0, 0, 1, 1] {
+    ^bb0(%arg1: index, %arg2: index, %arg3: index, %arg4: index):
+      tensor.yield %cst_10 : f32
+    } : tensor<1x192x13x13xf32> to tensor<1x192x15x15xf32>
+    %15 = tensor.empty() : tensor<1x384x13x13xf32>
+    %16 = linalg.generic {indexing_maps = [#map, #map1], iterator_types = ["parallel", "parallel", "parallel", "parallel"]} ins(%cst_14 : tensor<384xf32>) outs(%15 : tensor<1x384x13x13xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      linalg.yield %in : f32
+    } -> tensor<1x384x13x13xf32>
+    %17 = linalg.conv_2d_nchw_fchw {dilations = dense<1> : vector<2xi64>, strides = dense<1> : vector<2xi64>} ins(%padded_18, %cst_13 : tensor<1x192x15x15xf32>, tensor<384x192x3x3xf32>) outs(%16 : tensor<1x384x13x13xf32>) -> tensor<1x384x13x13xf32>
+    %18 = linalg.generic {indexing_maps = [#map2, #map1], iterator_types = ["parallel", "parallel", "parallel", "parallel"]} ins(%17 : tensor<1x384x13x13xf32>) outs(%15 : tensor<1x384x13x13xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      %47 = arith.cmpf ugt, %in, %cst_10 : f32
+      %48 = arith.select %47, %in, %cst_10 : f32
+      linalg.yield %48 : f32
+    } -> tensor<1x384x13x13xf32>
+    %padded_19 = tensor.pad %18 low[0, 0, 1, 1] high[0, 0, 1, 1] {
+    ^bb0(%arg1: index, %arg2: index, %arg3: index, %arg4: index):
+      tensor.yield %cst_10 : f32
+    } : tensor<1x384x13x13xf32> to tensor<1x384x15x15xf32>
+    %19 = tensor.empty() : tensor<1x256x13x13xf32>
+    %20 = linalg.generic {indexing_maps = [#map, #map1], iterator_types = ["parallel", "parallel", "parallel", "parallel"]} ins(%cst_5 : tensor<256xf32>) outs(%19 : tensor<1x256x13x13xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      linalg.yield %in : f32
+    } -> tensor<1x256x13x13xf32>
+    %21 = linalg.conv_2d_nchw_fchw {dilations = dense<1> : vector<2xi64>, strides = dense<1> : vector<2xi64>} ins(%padded_19, %cst_6 : tensor<1x384x15x15xf32>, tensor<256x384x3x3xf32>) outs(%20 : tensor<1x256x13x13xf32>) -> tensor<1x256x13x13xf32>
+    %22 = linalg.generic {indexing_maps = [#map2, #map1], iterator_types = ["parallel", "parallel", "parallel", "parallel"]} ins(%21 : tensor<1x256x13x13xf32>) outs(%19 : tensor<1x256x13x13xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      %47 = arith.cmpf ugt, %in, %cst_10 : f32
+      %48 = arith.select %47, %in, %cst_10 : f32
+      linalg.yield %48 : f32
+    } -> tensor<1x256x13x13xf32>
+    %padded_20 = tensor.pad %22 low[0, 0, 1, 1] high[0, 0, 1, 1] {
+    ^bb0(%arg1: index, %arg2: index, %arg3: index, %arg4: index):
+      tensor.yield %cst_10 : f32
+    } : tensor<1x256x13x13xf32> to tensor<1x256x15x15xf32>
+    %23 = linalg.generic {indexing_maps = [#map, #map1], iterator_types = ["parallel", "parallel", "parallel", "parallel"]} ins(%cst_16 : tensor<256xf32>) outs(%19 : tensor<1x256x13x13xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      linalg.yield %in : f32
+    } -> tensor<1x256x13x13xf32>
+    %24 = linalg.conv_2d_nchw_fchw {dilations = dense<1> : vector<2xi64>, strides = dense<1> : vector<2xi64>} ins(%padded_20, %cst_15 : tensor<1x256x15x15xf32>, tensor<256x256x3x3xf32>) outs(%23 : tensor<1x256x13x13xf32>) -> tensor<1x256x13x13xf32>
+    %25 = linalg.generic {indexing_maps = [#map2, #map1], iterator_types = ["parallel", "parallel", "parallel", "parallel"]} ins(%24 : tensor<1x256x13x13xf32>) outs(%19 : tensor<1x256x13x13xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      %47 = arith.cmpf ugt, %in, %cst_10 : f32
+      %48 = arith.select %47, %in, %cst_10 : f32
+      linalg.yield %48 : f32
+    } -> tensor<1x256x13x13xf32>
+    %26 = tensor.empty() : tensor<1x256x6x6xf32>
+    %27 = linalg.fill ins(%cst_11 : f32) outs(%26 : tensor<1x256x6x6xf32>) -> tensor<1x256x6x6xf32>
+    %28 = linalg.pooling_nchw_max {dilations = dense<1> : vector<2xi64>, strides = dense<2> : vector<2xi64>} ins(%25, %6 : tensor<1x256x13x13xf32>, tensor<3x3xf32>) outs(%27 : tensor<1x256x6x6xf32>) -> tensor<1x256x6x6xf32>
+    %collapsed = tensor.collapse_shape %28 [[0], [1, 2, 3]] : tensor<1x256x6x6xf32> into tensor<1x9216xf32>
+    %29 = tensor.empty() : tensor<9216x4096xf32>
+    %30 = linalg.generic {indexing_maps = [#map3, #map4], iterator_types = ["parallel", "parallel"]} ins(%cst_4 : tensor<4096x9216xf32>) outs(%29 : tensor<9216x4096xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      linalg.yield %in : f32
+    } -> tensor<9216x4096xf32>
+    %31 = tensor.empty() : tensor<1x4096xf32>
+    %32 = linalg.fill ins(%cst_10 : f32) outs(%31 : tensor<1x4096xf32>) -> tensor<1x4096xf32>
+    %33 = linalg.matmul ins(%collapsed, %30 : tensor<1x9216xf32>, tensor<9216x4096xf32>) outs(%32 : tensor<1x4096xf32>) -> tensor<1x4096xf32>
+    %34 = linalg.generic {indexing_maps = [#map5, #map6, #map3], iterator_types = ["parallel", "parallel"]} ins(%33, %cst_3 : tensor<1x4096xf32>, tensor<4096xf32>) outs(%31 : tensor<1x4096xf32>) {
+    ^bb0(%in: f32, %in_21: f32, %out: f32):
+      %47 = arith.addf %in, %in_21 : f32
+      linalg.yield %47 : f32
+    } -> tensor<1x4096xf32>
+    %35 = linalg.generic {indexing_maps = [#map5, #map3], iterator_types = ["parallel", "parallel"]} ins(%34 : tensor<1x4096xf32>) outs(%31 : tensor<1x4096xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      %47 = arith.cmpf ugt, %in, %cst_10 : f32
+      %48 = arith.select %47, %in, %cst_10 : f32
+      linalg.yield %48 : f32
+    } -> tensor<1x4096xf32>
+    %36 = tensor.empty() : tensor<4096x4096xf32>
+    %37 = linalg.generic {indexing_maps = [#map3, #map4], iterator_types = ["parallel", "parallel"]} ins(%cst_2 : tensor<4096x4096xf32>) outs(%36 : tensor<4096x4096xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      linalg.yield %in : f32
+    } -> tensor<4096x4096xf32>
+    %38 = linalg.matmul ins(%35, %37 : tensor<1x4096xf32>, tensor<4096x4096xf32>) outs(%32 : tensor<1x4096xf32>) -> tensor<1x4096xf32>
+    %39 = linalg.generic {indexing_maps = [#map5, #map6, #map3], iterator_types = ["parallel", "parallel"]} ins(%38, %cst_1 : tensor<1x4096xf32>, tensor<4096xf32>) outs(%31 : tensor<1x4096xf32>) {
+    ^bb0(%in: f32, %in_21: f32, %out: f32):
+      %47 = arith.addf %in, %in_21 : f32
+      linalg.yield %47 : f32
+    } -> tensor<1x4096xf32>
+    %40 = linalg.generic {indexing_maps = [#map5, #map3], iterator_types = ["parallel", "parallel"]} ins(%39 : tensor<1x4096xf32>) outs(%31 : tensor<1x4096xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      %47 = arith.cmpf ugt, %in, %cst_10 : f32
+      %48 = arith.select %47, %in, %cst_10 : f32
+      linalg.yield %48 : f32
+    } -> tensor<1x4096xf32>
+    %41 = tensor.empty() : tensor<4096x1000xf32>
+    %42 = linalg.generic {indexing_maps = [#map3, #map4], iterator_types = ["parallel", "parallel"]} ins(%cst_0 : tensor<1000x4096xf32>) outs(%41 : tensor<4096x1000xf32>) {
+    ^bb0(%in: f32, %out: f32):
+      linalg.yield %in : f32
+    } -> tensor<4096x1000xf32>
+    %43 = tensor.empty() : tensor<1x1000xf32>
+    %44 = linalg.fill ins(%cst_10 : f32) outs(%43 : tensor<1x1000xf32>) -> tensor<1x1000xf32>
+    %45 = linalg.matmul ins(%40, %42 : tensor<1x4096xf32>, tensor<4096x1000xf32>) outs(%44 : tensor<1x1000xf32>) -> tensor<1x1000xf32>
+    %46 = linalg.generic {indexing_maps = [#map5, #map6, #map3], iterator_types = ["parallel", "parallel"]} ins(%45, %cst : tensor<1x1000xf32>, tensor<1000xf32>) outs(%43 : tensor<1x1000xf32>) {
+    ^bb0(%in: f32, %in_21: f32, %out: f32):
+      %47 = arith.addf %in, %in_21 : f32
+      linalg.yield %47 : f32
+    } -> tensor<1x1000xf32>
+    return %46 : tensor<1x1000xf32>
+  }
+}
+
+[?2004h]0;pingmu123@LAPTOP-SA8SOC9R: ~/torch-mlir/examples[01;32mpingmu123@LAPTOP-SA8SOC9R[00m:[01;34m~/torch-mlir/examples[00m$ exit
+[?2004lexit
+
+Script done on 2023-05-24 18:43:37+08:00 [COMMAND_EXIT_CODE="0"]

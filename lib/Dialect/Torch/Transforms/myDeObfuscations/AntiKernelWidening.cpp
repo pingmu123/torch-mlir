@@ -38,7 +38,7 @@ static void antiKernelWidening(MLIRContext *context, Operation *f) {
     llvm::errs() << "No convKernel so no padding!\n";
     return;
   }
-   for(auto it=convOpWorklist.begin();it!=convOpWorklist.end();it++){
+  for(auto it=convOpWorklist.begin();it!=convOpWorklist.end();it++){
     AtenConvolutionOp convOp =  dyn_cast<AtenConvolutionOp>(*it);
     IRRewriter rewriter(context);
     rewriter.setInsertionPoint(convOp);
@@ -67,8 +67,7 @@ static void antiKernelWidening(MLIRContext *context, Operation *f) {
       }
       else break;
     }
-    llvm::outs() << zeroPaddingNum << "\n";
-    if(zeroPaddingNum>0){
+    if(zeroPaddingNum>0 && (2*zeroPaddingNum)<height){ // solve skip convOp error
 
       // change convPadding
       auto convPadding = convOp.getOperand(4);
@@ -81,7 +80,6 @@ static void antiKernelWidening(MLIRContext *context, Operation *f) {
         rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(hPadding));
       Value intWidthPad =
         rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(wPadding));
-
       Value listIntPad_Pad = rewriter.create<PrimListConstructOp>(
           loc, ListType::get(IntType::get(context)),
           ValueRange({intHeightPad, intWidthPad}));
@@ -122,14 +120,14 @@ static void antiKernelWidening(MLIRContext *context, Operation *f) {
       convOp.getResult().getDefiningOp()->replaceUsesOfWith(convOp.getOperand(1), newKernel);
 
       } // end of process zeroPadding
-   }
+    }
 
-   // delete ops which are unused (produced by pass)
-   llvm::SmallPtrSet<mlir::Operation *, 16> OpWorklist;
-   f->walk([&](mlir::Operation *op){ // all Ops
-    OpWorklist.insert(op);
-   });
-   for(auto it=OpWorklist.begin();it!=OpWorklist.end();it++){
+  // delete ops which are unused (produced by pass)
+  llvm::SmallPtrSet<mlir::Operation *, 16> OpWorklist;
+  f->walk([&](mlir::Operation *op){ // all Ops
+  OpWorklist.insert(op);
+  });
+  for(auto it=OpWorklist.begin();it!=OpWorklist.end();it++){
     auto op = *(it);
     if(isa<ConstantIntOp, PrimListConstructOp, ValueTensorLiteralOp>(op)){
         auto usersOp = op->getUses();

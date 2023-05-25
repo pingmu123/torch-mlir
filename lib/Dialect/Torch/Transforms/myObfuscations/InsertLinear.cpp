@@ -27,6 +27,14 @@ using namespace mlir::torch;
 using namespace mlir::torch::Torch;
 
 namespace {
+
+
+
+// det(A): 
+
+
+
+
 // LUP分解
 void LUP_Descomposition(float A[], float L[], float U[], int P[], int N) {
   int row = 0;
@@ -202,13 +210,25 @@ static std::vector<Value> createABCD(IRRewriter &rewriter, Location loc,
   float *B = new float[N]();
   float *C;
   float *D = new float[N]();
-  // srand((unsigned)time(0));
+  srand((unsigned)time(0));
   for (int i = 0; i < N; i++) {
     for (int j = 0; j < N; j++) {
       A[i * N + j] = rand() % 100 * 0.01;
     }
     B[i] = rand() % 100 * 0.01;
   }
+  // llvm::outs() << "detA = " << det(N, A) << "\n";
+  // // det(A)= 0? // todo： generate again when det(A)==0
+  // while(det(N, A)==0){
+  //   srand((unsigned)time(0));
+  //   for (int i = 0; i < N; i++) {
+  //     for (int j = 0; j < N; j++) {
+  //       A[i * N + j] = rand() % 100 * 0.01;
+  //     }
+  //     B[i] = rand() % 100 * 0.01;
+  //   }
+  //   llvm::outs() << "detA = " << det(N, A) << "\n";
+  // }
   C = LUP_solve_inverse(A, N);
   float sum;
   for (int i = 0; i < N; i++) {
@@ -232,8 +252,8 @@ static std::vector<Value> createABCD(IRRewriter &rewriter, Location loc,
 }
 
 static void insertLinearRNN(MLIRContext *context,
-                            SmallPtrSet<Operation *, 16> opWorklist) {
-  // insert 2 linear layer for every op in opWorklist
+                            llvm::SmallVector<mlir::Operation*, 32> opWorklist) {
+  // 50% probability to insert 2 linear layer for every op in opWorklist
   // special for RNN: hidden layer in loop share the same weight
   // prerequest: all ops in opWorklist is same op in unrolling RNN loop
 
@@ -258,6 +278,9 @@ static void insertLinearRNN(MLIRContext *context,
   std::vector<Value> values = createABCD(rewriter, loc, context, shapeNew[1]);
 
   for (auto op : opWorklist) {
+    srand(unsigned(time(0)));
+    int jump = std::rand();
+    if(jump%2==0) break; // randomly jump this Op
     rewriter.setInsertionPointAfter(op);
     // copy op, for convinience of replace use of op
     Operation *newOp = rewriter.clone(*op);
@@ -284,12 +307,15 @@ static void insertLinearRNN(MLIRContext *context,
 }
 
 static void insertLinear(MLIRContext *context,
-                         llvm::SmallPtrSet<Operation *, 16> opWorklist) {
-  // insert 2 linear layer for every op in opWorklist
+                         llvm::SmallVector<mlir::Operation*, 32> opWorklist) {
+  // 50% probability to insert 2 linear layer for every op in opWorklist
 
   IRRewriter rewriter(context);
 
   for (auto op : opWorklist) {
+    srand(unsigned(time(0)));
+    int jump = std::rand();
+    if(jump%2==0) break; // randomly jump this Op
     rewriter.setInsertionPointAfter(op);
     // copy op, for convinience of replace use of op
     Operation *newOp = rewriter.clone(*op);
@@ -336,7 +362,7 @@ public:
   InsertLinearPass(std::string net) { this->net = net; }
   void runOnOperation() override {
     auto f = getOperation();
-    llvm::SmallPtrSet<Operation *, 16> opWorklist = getPositiveLayers(f);
+   llvm::SmallVector<mlir::Operation*, 32> opWorklist = getPositiveLayers(f);
     MLIRContext *context = &getContext();
 
     if (opWorklist.empty()) {
@@ -346,7 +372,7 @@ public:
     if (net == "") {
       // todo: opWorklist too large will cause precision error
       while (opWorklist.size() >= 3)
-        opWorklist.erase(*opWorklist.begin());
+        opWorklist.erase(opWorklist.begin());
       insertLinear(context, opWorklist);
     } else if (net == "RNN") {
       insertLinearRNN(context, opWorklist);

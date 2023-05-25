@@ -26,11 +26,14 @@ using namespace mlir::torch::Torch;
 
 static void branchLayer(MLIRContext *context, Operation *f) {
   // this demo Compute convolutions with kernel-wise
-
-  llvm::SmallPtrSet<Operation *, 16> convOpWorklist;
+  // NOTE: first convOp can not branch
+  llvm::SmallVector<mlir::Operation*, 32> convOpWorklist;
+  int num=0;
   f->walk([&](Operation *op) {
     if (isa<AtenConvolutionOp>(op)) {
-      convOpWorklist.insert(op);
+      convOpWorklist.push_back(op);
+      if(num==0) convOpWorklist.pop_back(); // jump first convOp
+      num++;
     }
   });
   if(convOpWorklist.empty()){
@@ -45,6 +48,12 @@ static void branchLayer(MLIRContext *context, Operation *f) {
   Location loc = convOp->getLoc();
 
   // branch layer
+  auto it = convOp->getUses().begin();
+  if(isa<PrimListConstructOp>(it->getOwner())){
+    llvm::outs() << "jump this convOp(it has related to some branch Op)!";
+    return;
+  }
+
   Value convKernel = convOp->getOperand(1);
   auto convKernelData = convKernel.getDefiningOp<ValueTensorLiteralOp>().getValue().getValues<float>();
   auto convKernelShape = convKernel.getType().cast<ValueTensorType>().getSizes().vec();
@@ -62,7 +71,10 @@ static void branchLayer(MLIRContext *context, Operation *f) {
     return;
   }
   while(kernelNum){
-    while(subKernelNum==0) subKernelNum = std::rand() % kernelNum;
+    while(subKernelNum==0){
+      srand(unsigned(time(0)));
+      subKernelNum = std::rand() % kernelNum;
+    }
     branch.push_back(subKernelNum);
     kernelNum-=subKernelNum;
     if(kernelNum==1){
@@ -105,7 +117,7 @@ static void branchLayer(MLIRContext *context, Operation *f) {
     // set result type
     ValueTensorType tensorTy = tmpConv.getType().dyn_cast<ValueTensorType>();
     tmpShape = tensorTy.getSizes().vec();
-    tmpShape[1] = branch[i];
+    tmpShape[1] = branch[i]; // 0: batch  1:channels
     resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(tmpShape), rewriter.getF32Type());
     tmpConv.setType(resultTensorType);
 
@@ -122,9 +134,11 @@ static void branchLayer(MLIRContext *context, Operation *f) {
   Value dim = rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(1));
   Value concatOp = rewriter.create<AtenCatOp>(loc, convOp->getResult(0).getType(), 
                                               tensorList, dim);
+
   auto convKernelOp = convKernel.getDefiningOp();
   auto convBiasOp = convBias.getDefiningOp();
   rewriter.replaceOp(convOp, concatOp);
+  // todo: robust
   convKernelOp->erase();
   convBiasOp->erase();
 }

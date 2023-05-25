@@ -28,10 +28,10 @@ using namespace mlir::torch::Torch;
 static void dummyAddition(MLIRContext *context, Operation *f) {
 
     // dummy addition
-    llvm::SmallPtrSet<mlir::Operation *, 16> reluOpWorklist;
+    llvm::SmallVector<mlir::Operation*, 32> reluOpWorklist;
     f->walk([&](mlir::Operation *op){ // find all ReluOp
       if(dyn_cast<AtenReluOp>(op)){ 
-        reluOpWorklist.insert(op);
+        reluOpWorklist.push_back(op);
       }
     });
     // int i=0;
@@ -66,7 +66,11 @@ static void dummyAddition(MLIRContext *context, Operation *f) {
       // create an zeroTensor with same tensor after newReluOp
       Value opNum_0 = preReluOp.getOperand();
       auto shape = opNum_0.getType().cast<ValueTensorType>().getSizes().vec(); // torch.vtensor-->tensor-->shape-->shape(vector)
-      std::vector<float> zeroVec(1, 0);
+      int zeroTensorSize=1;
+      for(auto i=0;i<shape.size();i++){
+        zeroTensorSize*=shape[i];
+      }
+      std::vector<float> zeroVec(zeroTensorSize, 0.0);
       auto resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(shape), rewriter.getF32Type());
       auto dense = DenseElementsAttr::get(
       RankedTensorType::get(llvm::ArrayRef(shape), rewriter.getF32Type()),

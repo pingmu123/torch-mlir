@@ -42,7 +42,7 @@ using namespace mlir::torch::Torch;
 using std::vector;
 
 // frequently-used function about getting ops
-typedef llvm::SmallPtrSet<Operation *, 16> OpList;
+typedef std::vector<Operation*> OpList;
 bool getConvMiddleOps(OpList &oplist, Operation *f, int layer);
 bool getConvOp(OpList &oplist, Operation *f, int layer);
 
@@ -231,4 +231,4 @@ Value createTensor(IRRewriter &rewriter, Location loc, MLIRContext *context,
                    std::vector<long> shape, std::vector<float> weight);
 Value createReshape(IRRewriter &rewriter, Location loc, MLIRContext *context,
                     std::vector<long> shape, Value originVal);
-SmallPtrSet<Operation *, 16> getPositiveLayers(Operation *f);
+llvm::SmallVector<mlir::Operation*, 32> getPositiveLayers(Operation *f);

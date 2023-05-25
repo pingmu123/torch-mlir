@@ -27,7 +27,7 @@ using namespace mlir::torch::Torch;
 
 static void antiInsertConv(MLIRContext *context, Operation *f) {
   
-  llvm::SmallVector<mlir::Operation *, 16> OpWorklist;
+  llvm::SmallVector<mlir::Operation*, 32> OpWorklist;
 
   // anti insert conv
 
@@ -96,7 +96,6 @@ static void antiInsertConv(MLIRContext *context, Operation *f) {
                 break;
             }
         }
-        llvm::outs() << isUnitConv << "\n";
 
         if(isUnitConv){
             // """
@@ -153,7 +152,10 @@ static void antiInsertConv(MLIRContext *context, Operation *f) {
             while(preUseOp!=preOp){
                 if(!dyn_cast<AtenConvolutionOp>(preUseOp)){
                     tmpOp = preUseOp->getOperand(0).getDefiningOp();
-                    preUseOp->erase();
+                    auto usersOp = preUseOp->getUses();
+                    if(usersOp.begin()==usersOp.end()){
+                        preUseOp->erase();
+                    }
                     preUseOp = tmpOp;
                 }
                 else{
@@ -166,11 +168,42 @@ static void antiInsertConv(MLIRContext *context, Operation *f) {
                     auto tmpOp6 = preUseOp->getOperand(6).getDefiningOp();
                     auto tmpOp7 = preUseOp->getOperand(7).getDefiningOp();
                     auto tmpOp8 = preUseOp->getOperand(8).getDefiningOp();
-                    preUseOp->erase();
-                    tmpOp1->erase();tmpOp2->erase();
-                    tmpOp3->erase();tmpOp4->erase();
-                    // tmpOp5->erase(); // TODO: 3, 5 are point to same Op  here
-                    tmpOp6->erase();tmpOp7->erase();tmpOp8->erase();
+                    auto usersOp = preUseOp->getUses();
+                    if(usersOp.begin()==usersOp.end()){
+                        preUseOp->erase();
+                    }
+                    usersOp = tmpOp1->getUses();
+                    if(usersOp.begin()==usersOp.end()){
+                        tmpOp1->erase();
+                    }
+                    usersOp = tmpOp2->getUses();
+                    if(usersOp.begin()==usersOp.end()){
+                        tmpOp2->erase();
+                    }
+                    usersOp = tmpOp3->getUses();
+                    if(usersOp.begin()==usersOp.end()){
+                        tmpOp3->erase();
+                    }
+                    usersOp = tmpOp4->getUses();
+                    if(usersOp.begin()==usersOp.end()){
+                        tmpOp4->erase();
+                    }
+                    usersOp = tmpOp6->getUses();
+                    if(usersOp.begin()==usersOp.end()){
+                        tmpOp6->erase();
+                    }
+                    usersOp = tmpOp7->getUses();
+                    if(usersOp.begin()==usersOp.end()){
+                        tmpOp7->erase();
+                    }
+                    usersOp = tmpOp8->getUses();
+                    if(usersOp.begin()==usersOp.end()){
+                        tmpOp8->erase();
+                    }
+                    // tmpOp1->erase();tmpOp2->erase();
+                    // tmpOp3->erase();tmpOp4->erase();
+                    // // tmpOp5->erase(); // TODO: 3, 5 are point to same Op  here
+                    // tmpOp6->erase();tmpOp7->erase();tmpOp8->erase();
                     preUseOp = tmpOp;
                 }
             }

@@ -25,16 +25,19 @@ using namespace mlir::torch;
 using namespace mlir::torch::Torch;
 
 static void insertSkip(MLIRContext *context, Operation *f) {
-  // this demo insert a skip for the second convolution
+  // this demo insert a skip for random convolution in NN model
 
-  llvm::SmallPtrSet<Operation *, 16> opWorklist;
+  llvm::SmallVector<mlir::Operation*, 32> opWorklist;
   f->walk([&](Operation *op) {
     if (isa<AtenConvolutionOp>(op)) {
-      opWorklist.insert(op);
+      opWorklist.push_back(op);
     }
   });
-  auto it = opWorklist.begin();
-  it++;
+  // auto it = opWorklist.begin();
+  // it++;
+  // random
+  srand(unsigned(time(0)));
+  auto it = (std::next(opWorklist.begin(), std::rand() % opWorklist.size()));
   AtenConvolutionOp convOp = llvm::dyn_cast<AtenConvolutionOp>(*it);
   IRRewriter rewriter(context);
   rewriter.setInsertionPoint(convOp);

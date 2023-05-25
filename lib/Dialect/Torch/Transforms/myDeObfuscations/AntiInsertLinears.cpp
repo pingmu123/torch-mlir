@@ -103,13 +103,12 @@ bool isEqual(vector<float>& A, vector<float>& B){
 
 static void antiInsertLinear(MLIRContext *context, Operation *f) {
   
-  vector<mlir::Operation*> opWorklist;
-    f->walk([&](mlir::Operation* op){ // all Ops
-      opWorklist.push_back(op);
-    });
+  llvm::SmallVector<mlir::Operation*, 32> opWorklist;
+  f->walk([&](mlir::Operation* op){ // all Ops
+    opWorklist.push_back(op);
+  });
 
   // anti insert linear
-  llvm::outs() << "==============1=================\n";
   vector<vector<int>> mmOpWeightShape;
   vector<vector<float>> mmOpWeightData;
   vector<vector<int>> mmOpBiasShape;
@@ -122,17 +121,16 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
         // mmOp + addTensorOp(mmBiasOp)
         auto op = *it;
         auto mmOp = op->getOperand(0).getDefiningOp();
+        // it is error when the first parapeter is not Op(origin input)
+        // AntiInsertLinearPass should be behind of AntiInsertSkipPass
         if(isa<AtenMmOp>(mmOp)&&isa<ValueTensorLiteralOp>(mmOp->getOperand(1).getDefiningOp())){
             numOfOp++;
             mmOpWorklist.push_back(mmOp);
-            // llvm::outs() << *mmOp << "\n";
             auto opWeightShape = mmOp->getOperand(1).getType().cast<ValueTensorType>().getSizes().vec();
             vector<int> tmp1;
             for(auto num: opWeightShape){
-                // llvm::outs() << num << " ";
                 tmp1.push_back(num); 
             }
-            // llvm::outs() << "\n";
             auto opWeightData = mmOp->getOperand(1).getDefiningOp<ValueTensorLiteralOp>().getValue().getValues<float>();
             vector<float> tmp2;
             for(auto num: opWeightData) tmp2.push_back(num);
@@ -153,9 +151,6 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
         }
       } // todo: only insert mmOp?
   }
-
-  llvm::outs() << numOfOp << "\n";
-  llvm::outs() << "==============2==============\n";
   for(int i=0;i<numOfOp;i++){
     if(mmOpWeightShape[i][0]==mmOpWeightShape[i][1]){
         vector<float> col(mmOpWeightShape[i][1], 0);
@@ -182,16 +177,11 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
         }
     }
   }
-  llvm::outs() << "==============3=================\n";
-
-  for(auto op: mmOpWorklist) llvm::outs() << *op << "\n";
   for(int i=0;i<numOfOp;i++){
     // check 
     // (xA+B)C+D = xAC + BC + D
     // Xn*m Am*m Bn*m Cm*m Dn*m
-    if(i+1<numOfOp){
-        llvm::outs() << mmOpWeightShape[i][0] <<"  " << mmOpWeightShape[i+1][1] << " " 
-                     << mmOpWeightShape[i][1] << "  " << mmOpWeightShape[i+1][0] << "\n";
+    if((i+1)<numOfOp){ // shoule be i+1 but bugs
         if( mmOpWeightShape[i][0]==mmOpWeightShape[i][1] &&
             mmOpWeightShape[i][0]==mmOpWeightShape[i+1][1] &&
             mmOpWeightShape[i][1]==mmOpWeightShape[i+1][0]){
@@ -206,15 +196,12 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
             vector<float> AC=flatten(matMul(toMatrix(mmOpWeightData[i], m, m), toMatrix(mmOpWeightData[i+1], m, m)));
             if(isEqual(AC, unitMatrixFlatten)){ 
                 // BC + D == 0？
-                llvm::outs() << "AC==E\n";
-                
                 // biasShape:  align by broadcasting 
                 vector<float> BCD = flatten(matAdd(matMul(toMatrix(mmOpBiasData[i], 1, m), // B  
                                                          toMatrix(mmOpWeightData[i+1], m, m)), // C
                                                 toMatrix(mmOpBiasData[i+1], 1, m))); // D
                 vector<float> zeroVec(BCD.size(), 0);
                 if(isEqual(BCD, zeroVec)){
-                    llvm::outs() << "BCD==0\n";
                     /*
                     mm1
                     add1
@@ -230,13 +217,14 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
                     while(it!=userOps.end()){
                         auto tmpOp=it->getOwner();
                         tmpOp->replaceUsesOfWith(tmpOp->getOperand(0), (*it_1)->getOperand(0));
+                        userOps = (*it_2)->getUses();
 
-                        userOps = (*it_2)->getUses(); 
                         it=userOps.begin();
                     }
+                    
 
                     // delete add2 mm2 ... add1 mm1
-                    auto tmpOp1 = *it_2;
+                    auto tmpOp1 = *(it_2);
                     while(tmpOp1!=*it_1){
                         auto tmpOp2 = tmpOp1->getOperand(0).getDefiningOp();
                         auto usersOp = tmpOp1->getUses();
@@ -249,6 +237,7 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
                     if(usersOp.begin()==usersOp.end()){
                         tmpOp1->erase(); // delete mm1
                     }
+                    ++i; // Note: jump next mm + add Op
                 }
             }
         }
@@ -266,8 +255,6 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
     
 //   }
     
-
-  llvm::outs() << "==============4=================\n";
   // erase the ops which difficultly process in the process
   opWorklist.clear();
 
@@ -280,7 +267,6 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
     if(isa<AtenReluOp>(op)){
         if(isa<AtenReluOp>(op->getOperand(0).getDefiningOp())){
             auto tmpOp = dyn_cast<AtenReluOp>(op->getOperand(0).getDefiningOp());
-            llvm::outs() << *op << "/n" << *tmpOp << "\n";
             op->replaceUsesOfWith(op->getOperand(0), tmpOp->getOperand(0));
             tmpOp->erase();
         }

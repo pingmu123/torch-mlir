@@ -26,11 +26,10 @@ using namespace mlir::torch::Torch;
 
 static void antiBranchLayer(MLIRContext *context, Operation *f) {
   // this demo Compute convolution with merging same dimSize kernel
-
-  llvm::SmallPtrSet<Operation *, 16> convOpWorklist;
+  llvm::SmallVector<mlir::Operation*, 32> convOpWorklist;
   f->walk([&](Operation *op) {
     if (isa<AtenConvolutionOp>(op)) { // all convOp
-      convOpWorklist.insert(op);
+      convOpWorklist.push_back(op);
     }
   });
   for(auto it=convOpWorklist.begin();it!=convOpWorklist.end();it++){
@@ -53,6 +52,8 @@ static void antiBranchLayer(MLIRContext *context, Operation *f) {
     for(auto num: conv1BiasData) newConvBiasData.push_back(num);
     auto conv1Stride = convOp.getOperand(3);
     auto conv1Padding = convOp.getOperand(4);
+    int h1Padding = conv1Padding.getDefiningOp()->getOperand(0).getDefiningOp<ConstantIntOp>().getValue().getSExtValue();
+    int w1Padding = conv1Padding.getDefiningOp()->getOperand(1).getDefiningOp<ConstantIntOp>().getValue().getSExtValue();
     auto conv1Dilation = convOp.getOperand(5);
     auto conv1Transposed = convOp.getOperand(6);
     auto conv1OutputPadding = convOp.getOperand(7);
@@ -74,24 +75,34 @@ static void antiBranchLayer(MLIRContext *context, Operation *f) {
             auto conv2BiasData = conv2Bias.getDefiningOp<ValueTensorLiteralOp>().getValue().getValues<float>();
             auto conv2Stride = convOp.getOperand(3);
             auto conv2Padding = convOp.getOperand(4);
+            int h2Padding = conv2Padding.getDefiningOp()->getOperand(0).getDefiningOp<ConstantIntOp>().getValue().getSExtValue();
+            int w2Padding = conv2Padding.getDefiningOp()->getOperand(1).getDefiningOp<ConstantIntOp>().getValue().getSExtValue();
             auto conv2Dilation = convOp.getOperand(5);
             auto conv2Transposed = convOp.getOperand(6);
             auto conv2OutputPadding = convOp.getOperand(7);
             auto conv2Groups = convOp.getOperand(8);
             if(conv1Input==conv2Input && conv1KernelShape[1]==conv2KernelShape[1] &&
             conv1KernelShape[2]==conv2KernelShape[2] && conv1KernelShape[3]==conv2KernelShape[3] &&
-            conv1Stride==conv2Stride && conv1Padding==conv2Padding && conv1Dilation==conv2Dilation &&
+            conv1Stride==conv2Stride && h1Padding==h2Padding && w1Padding==w2Padding && conv1Dilation==conv2Dilation &&
             conv1Transposed==conv2Transposed && conv1OutputPadding==conv2OutputPadding &&
             conv1Groups==conv2Groups){
-                processConvOplist.insert(*it_2);
-                conv1KernelShape[0]+=conv2KernelShape[0];
-                conv1BiasShape[0]+=conv2BiasShape[0];
-                for(auto num: conv2KernelData) newConvKernelData.push_back(num);
-                for(auto num:conv2BiasData) newConvBiasData.push_back(num);
-                pre_it2=it_2;
-                it_2++;
+                auto convOp = dyn_cast<AtenConvolutionOp>(*it);
+                auto primListOp = convOp->getUses().begin()->getOwner(); // get tensorList
+                int sizeOfPrimList = primListOp->getNumOperands();
+                if(flag<sizeOfPrimList){ // 05.18 fixed bugs： many times BranchLayerPass to a convOp  // todo
+                  processConvOplist.insert(*it_2);
+                  conv1KernelShape[0]+=conv2KernelShape[0];
+                  conv1BiasShape[0]+=conv2BiasShape[0];
+                  for(auto num: conv2KernelData) newConvKernelData.push_back(num);
+                  for(auto num:conv2BiasData) newConvBiasData.push_back(num);
+                  pre_it2=it_2;
+                  it_2++;
 
-                flag++;
+                  flag++;
+
+                }
+                else together=false;;
+                  
             }
             else{
                 together=false;
@@ -166,6 +177,7 @@ static void antiBranchLayer(MLIRContext *context, Operation *f) {
           }
         }
         else{
+          return;
           mlir::ValueRange tensorList_vRange(convOpVector);
           Value tensorList= rewriter.create<PrimListConstructOp>(
             loc, ListType::get(ValueTensorType::getWithLeastStaticInformation(context)), // autoGet

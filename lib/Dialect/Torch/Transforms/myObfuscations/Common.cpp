@@ -6,10 +6,10 @@ bool getConvMiddleOps(OpList &oplist, Operation *f, int layer) {
     if (isa<AtenConvolutionOp>(op)) {
       convLayer--;
       if (convLayer == -1)
-        oplist.insert(op);
+        oplist.push_back(op);
     }
     if (convLayer == 0)
-      oplist.insert(op);
+      oplist.push_back(op);
   });
   // input test
   input_assert_ret(convLayer > -1, false, "layer < max_layer(%d) \n",
@@ -21,7 +21,7 @@ bool getConvOp(OpList &oplist, Operation *f, int layer) {
     if (isa<AtenConvolutionOp>(op)) {
       convLayer--;
       if (convLayer == 0)
-        oplist.insert(op);
+        oplist.push_back(op);
     }
   });
   // input test
@@ -65,13 +65,13 @@ Value createReshape(IRRewriter &rewriter, Location loc, MLIRContext *context,
   return rewriter.create<AtenViewOp>(loc, resultType, originVal, listShape);
 }
 
-llvm::SmallPtrSet<Operation *, 16> getPositiveLayers(Operation *f) {
+llvm::SmallVector<mlir::Operation*, 32> getPositiveLayers(Operation *f) {
   // get ops which output is positive
-  llvm::SmallPtrSet<Operation *, 16> opWorklist;
+  llvm::SmallVector<mlir::Operation*, 32> opWorklist;
   f->walk([&](Operation *op) {
     if (isa<AtenReluOp, AtenSigmoidOp>(op)) {
       if (op->getResult(0).getType().isa<ValueTensorType>()) {
-        opWorklist.insert(op);
+        opWorklist.push_back(op);
       }
     }
   });

@@ -27,13 +27,13 @@ using namespace mlir::torch::Torch;
 
 static void antiDummyAddition(MLIRContext *context, Operation *f) {
 
-  llvm::SmallPtrSet<mlir::Operation *, 16> AddTensorOpWorklist;
+  llvm::SmallVector<mlir::Operation*, 32> AddTensorOpWorklist;
 
   // anti dummy addition
   
   f->walk([&](mlir::Operation *op){ // find all AddTensorOp
     if(dyn_cast<AtenAddTensorOp>(op)){ 
-      AddTensorOpWorklist.insert(op);
+      AddTensorOpWorklist.push_back(op);
     }
   });
 
@@ -44,14 +44,16 @@ static void antiDummyAddition(MLIRContext *context, Operation *f) {
     // Whether operand 1 or operand 2 is zero
     Value opNum_1 = addTensorOp.getOperand(1);
     Value opNum_2 = addTensorOp.getOperand(2);
+    if((!isa<ValueTensorLiteralOp>(opNum_1.getDefiningOp())) ||
+       (!isa<ConstantFloatOp>(opNum_2.getDefiningOp()))) continue;
     auto opNum_1Data = opNum_1.getDefiningOp<ValueTensorLiteralOp>().getValue().getValues<float>();
     auto opNum_2Data = opNum_2.getDefiningOp<ConstantFloatOp>().getValue().convertToDouble();
     bool isEqual = true;
     if(opNum_2Data!=0.0){
         for (size_t i = 0; i < opNum_1Data.size(); ++i) {
-        if (opNum_1Data[i] != 0.0) {
-          isEqual = false;
-          break;
+          if (opNum_1Data[i]!=0.0) {
+            isEqual = false;
+            break;
         }
       }
     }
@@ -60,20 +62,25 @@ static void antiDummyAddition(MLIRContext *context, Operation *f) {
     if(isEqual){
       // handle the Ops related to this addTensorOp
       auto userOps = addTensorOp->getUses(); // get OpOperand(s)
-      auto it=userOps.begin();
-      while(it!=userOps.end()){
-        auto tmpOp=it->getOwner();
+      auto it_2=userOps.begin();
+
+      while(it_2!=userOps.end()){
+        auto tmpOp=it_2->getOwner();
         tmpOp->replaceUsesOfWith(tmpOp->getOperand(0), addTensorOp->getOperand(0));
 
         userOps = addTensorOp->getUses(); 
-        it=userOps.begin(); // the next Op which use addTensorOp
+        it_2=userOps.begin(); // the next Op which use addTensorOp
       }
-
+      
       // process addTensorOp
       auto preZeroTensorOp = addTensorOp.getOperand(1).getDefiningOp(); // ValueTensorLiteralOp
       auto preFloat1Op = addTensorOp.getOperand(2).getDefiningOp(); // ConstantFloatOp
-      addTensorOp->erase();
-      auto usersOp = preZeroTensorOp->getUses();
+      // check
+      auto usersOp = addTensorOp->getUses();
+      if(usersOp.begin()==usersOp.end()){
+        addTensorOp->erase();
+      }
+      usersOp = preZeroTensorOp->getUses();
       if(usersOp.begin()==usersOp.end()){
         preZeroTensorOp->erase();
       }
