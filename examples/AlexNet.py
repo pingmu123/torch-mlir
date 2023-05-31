@@ -1,3 +1,5 @@
+# https://github.com/aaron-xichen/pytorch-playground/blob/master/imagenet/alexnet.py
+
 import torch
 import time
 import numpy as np
