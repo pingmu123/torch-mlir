@@ -28,6 +28,7 @@ using namespace mlir::torch::Torch;
 static void dummyAddition(MLIRContext *context, Operation *f) {
 
     // dummy addition
+    llvm::outs() << "dummyAddition start!\n";
     llvm::SmallVector<mlir::Operation*, 32> reluOpWorklist;
     f->walk([&](mlir::Operation *op){ // find all ReluOp
       if(dyn_cast<AtenReluOp>(op)){ 

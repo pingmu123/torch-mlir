@@ -43,28 +43,29 @@ print(module.operation.get_asm(large_elements_limit=10))
 
 
 # begin
-print("================")
-print("after InsertSkip pass")
-print("================")
-torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-    module,
-    "builtin.module(func.func(torch-insert-skip))",
-    "InsertSkip",
-)
-print(module.operation.get_asm(large_elements_limit=10))
+for i in range (0,3):
+    print("================")
+    print("after InsertSkip pass")
+    print("================")
+    torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+        module,
+        "builtin.module(func.func(torch-insert-skip))",
+        "InsertSkip",
+    )
+    print(module.operation.get_asm(large_elements_limit=10))
 # end
 
-# begin
-print("================")
-print("after AntiInsertSkip pass")
-print("================")
-torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-    module,
-    "builtin.module(func.func(torch-anti-insert-skip))",
-    "AntiInsertSkip",
-)
-print(module.operation.get_asm(large_elements_limit=10))
-# end
+# # begin
+# print("================")
+# print("after AntiInsertSkip pass")
+# print("================")
+# torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#     module,
+#     "builtin.module(func.func(torch-anti-insert-skip))",
+#     "AntiInsertSkip",
+# )
+# print(module.operation.get_asm(large_elements_limit=10))
+# # end
 
 
 # lowering and run

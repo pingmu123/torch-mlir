@@ -27,6 +27,8 @@ using namespace mlir::torch::Torch;
 static void insertSkip(MLIRContext *context, Operation *f) {
   // this demo insert a skip for random convolution in NN model
 
+  llvm::outs() << "IS start!\n";
+
   llvm::SmallVector<mlir::Operation*, 32> opWorklist;
   f->walk([&](Operation *op) {
     if (isa<AtenConvolutionOp>(op)) {
@@ -50,9 +52,22 @@ static void insertSkip(MLIRContext *context, Operation *f) {
   // kernel
   // shape: (new channels, old channels, height, width)
   auto shape = oldKernel.getType().cast<ValueTensorType>().getSizes().vec();
-  shape[0] = shape[1];
-  shape[2] = shape[3] = 1; // 1x1 conv kernel
-  std::vector<float> zeroKernelVec(shape[0] * shape[1], 0);
+  auto inputShape = convOp.getOperand(0).getType().cast<ValueTensorType>().getSizes().vec();
+  shape[0] = inputShape[1];  
+  shape[1] = inputShape[1]; 
+  auto convPadding = convOp.getOperand(4);
+  auto convPaddingDataOp = convPadding.getDefiningOp<PrimListConstructOp>();
+  int hPadding = convPaddingDataOp.getOperand(0).getDefiningOp<ConstantIntOp>().getValue().getSExtValue();
+  int wPadding = convPaddingDataOp.getOperand(1).getDefiningOp<ConstantIntOp>().getValue().getSExtValue();
+  llvm::outs() <<"h and w:" << hPadding << ' ' << wPadding << "\n";
+  shape[2] = 1 + 2 * hPadding;
+  shape[3] = 1 + 2 * wPadding; // to make sure output is the same as input
+  //auto inputShape = convOp.getOperand(0).getType().cast<ValueTensorType>().getSizes().vec();
+  if(shape[2]>inputShape[2] || shape[3]>inputShape[3]){
+    llvm::outs() << " kernel size > input size, jump this InsertSkip! \n";
+    return;
+  }
+  std::vector<float> zeroKernelVec(shape[0] * shape[1] * shape[2] * shape[3], 0);
   auto resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(shape),
                                                rewriter.getF32Type());
   auto dense = DenseElementsAttr::get(

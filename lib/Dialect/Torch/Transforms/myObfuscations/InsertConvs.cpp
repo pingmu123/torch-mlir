@@ -27,7 +27,9 @@ using namespace mlir::torch;
 using namespace mlir::torch::Torch;
 
 static void insertConv(MLIRContext *context, Operation *f, int number) {
-  // insert invariant convolutions, with different pad and dilation
+  // insert invariant convolutions, with different pad
+
+  llvm::outs() << "IC start!\n";
 
   llvm::SmallPtrSet<Operation *, 16> opWorklist;
   f->walk([&](Operation *op) {
@@ -44,19 +46,6 @@ static void insertConv(MLIRContext *context, Operation *f, int number) {
   }
 
   IRRewriter rewriter(context);
-  // Operation *op = *opWorklist.begin();
-  // rewriter.setInsertionPoint(op);
-  // // reusable ops
-  // Location loc = op->getLoc();
-  // Value int0 =
-  //     rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(0));
-  // Value int1 =
-  //     rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(1));
-  // Value constFalse = rewriter.create<ConstantBoolOp>(loc, false);
-  // Value listInt1_1 = rewriter.create<PrimListConstructOp>(
-  //     loc, ListType::get(IntType::get(context)), ValueRange({int1, int1}));
-  // Value listInt = rewriter.create<PrimListConstructOp>(
-  //     loc, ListType::get(IntType::get(context)), ValueRange({}));
 
   for (int i = 0; i < number; i++) {
     // select a random place to insert
@@ -64,11 +53,11 @@ static void insertConv(MLIRContext *context, Operation *f, int number) {
     Operation *originOp =
         *(std::next(opWorklist.begin(), std::rand() % opWorklist.size()));
 
-    Value myRst = originOp->getResult(0);
-    std::vector<long> MyShape =
-        myRst.getType().cast<ValueTensorType>().getSizes().vec();
-    if(MyShape.size()!=4){ // only process Ops which size is 4
-      i--;
+    Value activeRst = originOp->getResult(0);
+    std::vector<long> rstShape =
+        activeRst.getType().cast<ValueTensorType>().getSizes().vec();
+    if(rstShape.size()!=4){ // only process Ops which size is 4
+      llvm::outs() << "rstShape!=4, jump this InsertConvOp! \n";
       continue;
     }
     rewriter.setInsertionPoint(originOp);
@@ -88,32 +77,22 @@ static void insertConv(MLIRContext *context, Operation *f, int number) {
     Operation *op = rewriter.clone(*originOp);
     loc = op->getLoc();
 
-    // create unsqueeze if dimansion less than 4, such as : (1,84) -> (1,1,1,84)
     Value rst = op->getResult(0);
     std::vector<long> shape =
         rst.getType().cast<ValueTensorType>().getSizes().vec();
-    int squeezeTime = 4 - shape.size();
-    if (squeezeTime < 0) {
-      continue;
-    }
-    for (int i = 0; i < squeezeTime; i++) {
-      shape.insert(shape.begin(), 1);
-      rst = rewriter.create<AtenUnsqueezeOp>(
-          loc,
-          ValueTensorType::get(context, llvm::ArrayRef(shape),
-                               rewriter.getF32Type()),
-          rst, int0);
-    }
     // create unit tensor as convolution kernel
     // new kernel size is: ChannelSz  x ChannelSz  x kernelSz x kernelSz
     int ChannelSz = shape[1];
-    int kernelSz = (1 + std::rand() % 5) * 2 + 1;
+    int kernelSz = (1 + std::rand() % 2) * 2 + 1; // 3 or 5
     shape[0] = ChannelSz;
+    if(shape[2]<kernelSz || shape[3]<kernelSz){
+      llvm::outs() << "kernelSize > inputSize, jump this InsertConv! \n";
+      return;
+    }
     shape[2] = shape[3] = kernelSz;
     std::vector<float> unitWeightVec(
         ChannelSz * ChannelSz * kernelSz * kernelSz, 0);
     for (int i = 0; i < ChannelSz; i++) {
-      // unitWeightVec[i][i][kernelSz/2][kernelSz/2] = 1
       unitWeightVec[((i * ChannelSz + i) * kernelSz + kernelSz / 2) * kernelSz +
                     kernelSz / 2] = 1;
     }
@@ -127,20 +106,21 @@ static void insertConv(MLIRContext *context, Operation *f, int number) {
     // create zero bias
     shape.erase(shape.begin() + 1, shape.end());
     std::vector<float> zeroBiasVec(shape[0], 0);
+    llvm::outs() << "1111111111111111111\n";
     resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(shape),
                                             rewriter.getF32Type());
     dense = DenseElementsAttr::get(
         RankedTensorType::get(llvm::ArrayRef(shape), rewriter.getF32Type()),
         llvm::ArrayRef(zeroBiasVec));
+    llvm::outs() << "22222222222222222\n";
     Value zeroBias =
         rewriter.create<ValueTensorLiteralOp>(loc, resultTensorType, dense);
     // create other oprands for conv
-    int dilNum = 1 + std::rand() % 5;
-    int padNum = (kernelSz - 1) * dilNum / 2;
+    int padNum = (kernelSz - 1) / 2; // keep shapes are equal
     Value intPad =
         rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(padNum));
     Value intDil =
-        rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(dilNum));
+        rewriter.create<ConstantIntOp>(loc, rewriter.getI64IntegerAttr(1)); // default: 1
     Value listIntPad_Pad = rewriter.create<PrimListConstructOp>(
         loc, ListType::get(IntType::get(context)),
         ValueRange({intPad, intPad}));
@@ -153,20 +133,24 @@ static void insertConv(MLIRContext *context, Operation *f, int number) {
         listIntPad_Pad, listIntDil_Dil, constFalse, listInt, int1);
     // create relu
     rst = rewriter.create<AtenReluOp>(loc, rst.getType(), rst);
-    // create squeeze
-    for (int i = 0; i < squeezeTime; i++) {
-      shape = rst.getType().cast<ValueTensorType>().getSizes().vec();
-      shape.erase(shape.begin());
-      rst = rewriter.create<AtenSqueezeDimOp>(
-          loc,
-          ValueTensorType::get(context, llvm::ArrayRef(shape),
-                               rewriter.getF32Type()),
-          rst, int0);
-    }
-
     rewriter.replaceOp(originOp, rst);
     opWorklist.erase(originOp);
-    // opWorklist.insert({op});
+  }
+
+  // erase ops which not use
+  llvm::SmallVector<mlir::Operation*, 32> OpWorklist;
+  OpWorklist.clear();
+  f->walk([&](mlir::Operation *op){ // all Ops
+      OpWorklist.push_back(op);
+  });
+  for(auto it=OpWorklist.begin();it!=OpWorklist.end();it++){
+    auto op = *(it);
+    if(isa<ConstantIntOp, PrimListConstructOp>(op)){
+        auto usersOp = op->getUses();
+        if(usersOp.begin()==usersOp.end()){
+            op->erase();
+        }
+    }
   }
 }
 

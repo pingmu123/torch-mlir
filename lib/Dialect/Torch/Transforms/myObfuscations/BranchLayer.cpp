@@ -27,6 +27,7 @@ using namespace mlir::torch::Torch;
 static void branchLayer(MLIRContext *context, Operation *f) {
   // this demo Compute convolutions with kernel-wise
   // NOTE: first convOp can not branch
+  llvm::outs() << "branchLayer start!\n";
   llvm::SmallVector<mlir::Operation*, 32> convOpWorklist;
   int num=0;
   f->walk([&](Operation *op) {
@@ -50,7 +51,7 @@ static void branchLayer(MLIRContext *context, Operation *f) {
   // branch layer
   auto it = convOp->getUses().begin();
   if(isa<PrimListConstructOp>(it->getOwner())){
-    llvm::outs() << "jump this convOp(it has related to some branch Op)!";
+    llvm::outs() << "jump this convOp(it has related to some branch Op)!\n";
     return;
   }
 
@@ -64,10 +65,10 @@ static void branchLayer(MLIRContext *context, Operation *f) {
   // branch method
   std::vector<int> branch;
   int kernelNum = convKernelShape[0];
-  int kernelSize = convKernelShape[1] * convKernelShape[2] *convKernelShape[3];
+  int kernelSize = convKernelShape[1] * convKernelShape[2] * convKernelShape[3];
   int subKernelNum = 0;
   if(kernelNum==1){
-    llvm::errs() << "There is only one kernel, return directly. \n";
+    llvm::outs() << "There is only one kernel, return directly. \n";
     return;
   }
   while(kernelNum){

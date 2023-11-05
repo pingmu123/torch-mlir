@@ -310,6 +310,8 @@ static void insertLinear(MLIRContext *context,
                          llvm::SmallVector<mlir::Operation*, 32> opWorklist) {
   // 50% probability to insert 2 linear layer for every op in opWorklist
 
+  llvm::outs() << "IL start!\n";
+
   IRRewriter rewriter(context);
 
   for (auto op : opWorklist) {

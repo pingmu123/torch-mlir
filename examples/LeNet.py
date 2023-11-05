@@ -35,13 +35,22 @@ class LeNet(nn.Module):
 net = LeNet()
 print(net)
 
+# for name, param in net.fc1.named_parameters():
+#     print(f"Parameter name: {name}")
+#     print(f"Parameter shape: {param.shape}")
+#     print(f"Parameter values: {param}")
+
+
 # compile to torch mlir
 # NCHW layout in pytorch
 print("================")
 print("origin torch mlir")
 print("================")
 module = torch_mlir.compile(net, torch.ones(1, 1, 28, 28), output_type="torch")
-print(module.operation.get_asm(large_elements_limit=10))
+# print(module.operation.get_asm(large_elements_limit=10))
+# file = open("LeNet.mlir", "w")
+# file.write(module.operation.get_asm())
+# file.close()
 
 print("================")
 print("after WidenConvLayer pass")
@@ -53,25 +62,25 @@ torch_mlir.compiler_utils.run_pipeline_with_repro_report(
 )
 print(module.operation.get_asm(large_elements_limit=10))
 
-print("================")
-print("after InsertSkip pass")
-print("================")
-torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-    module,
-    "builtin.module(func.func(torch-insert-skip))",
-    "InsertSkip",
-)
-print(module.operation.get_asm(large_elements_limit=10))
+# print("================")
+# print("after InsertSkip pass")
+# print("================")
+# torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#     module,
+#     "builtin.module(func.func(torch-insert-skip))",
+#     "InsertSkip",
+# )
+# print(module.operation.get_asm(large_elements_limit=10))
 
-print("================")
-print("after InsertConv pass")
-print("================")
-torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-    module,
-    "builtin.module(func.func(torch-insert-conv{}))",
-    "InsertSkip",
-)
-print(module.operation.get_asm(large_elements_limit=10))
+# print("================")
+# print("after InsertConv pass")
+# print("================")
+# torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#     module,
+#     "builtin.module(func.func(torch-insert-conv{}))",
+#     "InsertSkip",
+# )
+# print(module.operation.get_asm(large_elements_limit=10))
 
 print("================")
 print("after lower to linalg")

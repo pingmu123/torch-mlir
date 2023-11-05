@@ -58,18 +58,6 @@ Obfuscation = ["Obfuscation Passes:"]
 passes = []
 np.random.seed(int(time.time()))
 randNum = np.random.randint(0, 8)
-for i in range(0, 10):
-    randNum = np.random.randint(0, 8)
-    if randNum % 2 == 0:
-        passes.append(1)
-        Obfuscation.append("    WidenLayerPass")
-        randNum = np.random.randint(0, 8)  # for 'while'
-    randNum = np.random.randint(0, 8)
-    if randNum % 2 == 0:
-        passes.append(1)
-        Obfuscation.append("    BranchLayerPass")
-        randNum = np.random.randint(0, 8)  # for 'while'
-    randNum = np.random.randint(0, 8)  # for 'for'
 for i in range(0, 5):  # 5 times
     while randNum % 8:
         passes.append(randNum)
@@ -86,12 +74,12 @@ for randNum in passes:
         # )
     elif randNum == 2:
         pass
-        # Obfuscation.append("    BranchLayerPass")
-        # torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-        #     module,
-        #     "builtin.module(func.func(torch-branch-layer))",
-        #     "BranchLayer",
-        # )
+        Obfuscation.append("    BranchLayerPass")
+        torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+            module,
+            "builtin.module(func.func(torch-branch-layer))",
+            "BranchLayer",
+        )
     elif randNum == 3:
         pass
         # Obfuscation.append("    DummyAdditionPass")
@@ -109,6 +97,7 @@ for randNum in passes:
             "InsertConvs",
         )
     elif randNum == 5:
+        pass
         print("InsertLinearPass start!")
         Obfuscation.append("    InsertLinearsPass")
         torch_mlir.compiler_utils.run_pipeline_with_repro_report(
@@ -126,6 +115,7 @@ for randNum in passes:
             "InsertSkip",
         )
     elif randNum == 7:
+        pass
         Obfuscation.append("    KernelWideningPass")
         torch_mlir.compiler_utils.run_pipeline_with_repro_report(
             module,
@@ -158,59 +148,59 @@ for passName in Obfuscation:
 # Others passes
 # DeObfuscation times = DeObfuscationPassNum + 1(get a loop) - 1(Skip)
 DeObfTimes = 7
-for i in range(0, 1):
-    pass
-    torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-        module,
-        "builtin.module(func.func(torch-anti-insert-skip))",
-        "AntiInsertSkip",
-    )
+# for i in range(0, 1):
+#     pass
+#     torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#         module,
+#         "builtin.module(func.func(torch-anti-insert-skip))",
+#         "AntiInsertSkip",
+#     )
 
-for i in range(0, DeObfTimes):
-    torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-        module,
-        "builtin.module(func.func(torch-anti-widen-conv-layer))",
-        "",
-    )
-    torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-        module,
-        "builtin.module(func.func(torch-anti-branch-layer))",
-        "AntiBranchLayer",
-    )
-    torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-        module,
-        "builtin.module(func.func(torch-anti-dummy-addition))",
-        "AntiDummyAddition",
-    )
-    torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-        module,
-        "builtin.module(func.func(torch-anti-insert-conv))",
-        "AntiInsertConvs",
-    )
-    torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-        module,
-        "builtin.module(func.func(torch-anti-insert-linear))",
-        "AntiInsertLinear",
-    )
-    torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-        module,
-        "builtin.module(func.func(torch-anti-insert-skip))",
-        "AntiInsertSkip",
-    )
-    torch_mlir.compiler_utils.run_pipeline_with_repro_report(
-        module,
-        "builtin.module(func.func(torch-anti-kernel-widening))",
-        "AntiAntiKernelWidening",
-    )
+# for i in range(0, DeObfTimes):
+#     torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#         module,
+#         "builtin.module(func.func(torch-anti-widen-conv-layer))",
+#         "",
+#     )
+#     torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#         module,
+#         "builtin.module(func.func(torch-anti-branch-layer))",
+#         "AntiBranchLayer",
+#     )
+#     torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#         module,
+#         "builtin.module(func.func(torch-anti-dummy-addition))",
+#         "AntiDummyAddition",
+#     )
+#     torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#         module,
+#         "builtin.module(func.func(torch-anti-insert-conv))",
+#         "AntiInsertConvs",
+#     )
+#     torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#         module,
+#         "builtin.module(func.func(torch-anti-insert-linear))",
+#         "AntiInsertLinear",
+#     )
+#     torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#         module,
+#         "builtin.module(func.func(torch-anti-insert-skip))",
+#         "AntiInsertSkip",
+#     )
+#     torch_mlir.compiler_utils.run_pipeline_with_repro_report(
+#         module,
+#         "builtin.module(func.func(torch-anti-kernel-widening))",
+#         "AntiAntiKernelWidening",
+#     )
 
 """========================Obfuscation end============================="""
 
 # # # your pass end
 
-print("====================")
-print("after DeObfuscations")
-print("====================")
-print(module.operation.get_asm(large_elements_limit=10))
+# print("====================")
+# print("after DeObfuscations")
+# print("====================")
+# print(module.operation.get_asm(large_elements_limit=10))
 
 # lowering and run
 print("=====================")
