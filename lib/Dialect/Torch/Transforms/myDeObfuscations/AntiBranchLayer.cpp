@@ -26,6 +26,7 @@ using namespace mlir::torch::Torch;
 
 static void antiBranchLayer(MLIRContext *context, Operation *f) {
   // this demo Compute convolution with merging same dimSize kernel
+  llvm::outs() << "ABL start!\n";
   llvm::SmallVector<mlir::Operation*, 32> convOpWorklist;
   f->walk([&](Operation *op) {
     if (isa<AtenConvolutionOp>(op)) { // all convOp

@@ -28,6 +28,7 @@ using namespace mlir::torch::Torch;
 
 static void antiKernelWidening(MLIRContext *context, Operation *f) {
   // Delete the zeroPadding of kernel
+  llvm::outs() << "AKW start!\n";
   llvm::SmallPtrSet<Operation *, 16> convOpWorklist;
   f->walk([&](Operation *op) {
     if(isa<AtenConvolutionOp>(op)) {

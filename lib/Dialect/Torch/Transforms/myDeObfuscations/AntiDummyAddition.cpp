@@ -30,6 +30,7 @@ static void antiDummyAddition(MLIRContext *context, Operation *f) {
   llvm::SmallVector<mlir::Operation*, 32> AddTensorOpWorklist;
 
   // anti dummy addition
+  llvm::outs() << "ADA start!\n";
   
   f->walk([&](mlir::Operation *op){ // find all AddTensorOp
     if(dyn_cast<AtenAddTensorOp>(op)){ 

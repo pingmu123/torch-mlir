@@ -30,6 +30,7 @@ static void antiWidenConvLayer(MLIRContext *context, Operation *f) {
   /*
     Note: this pass must be put in last.
   */
+ llvm::outs() << "AWC start!\n";
   
   llvm::SmallVector<mlir::Operation*, 32> ConvOpWorklist;
   llvm::SmallVector<mlir::Operation*, 32> opWorklist;
@@ -160,7 +161,66 @@ static void antiWidenConvLayer(MLIRContext *context, Operation *f) {
           if(N%2==0) break;
         }
         auto tmpOp = *it_tmp;
-        if (ValueTensorType tensorTy =
+        if(isa<ValueTensorLiteralOp>(tmpOp)){
+          if((tmpOp->getUses().begin()!=tmpOp->getUses().end()) && isa<AtenConvolutionOp>(tmpOp->getUses().begin()->getOwner())){
+            it_tmp++;
+            continue;
+          }
+          auto tmpOpValue = tmpOp->getResult(0); // Operation* -> Value
+          auto tmpShape = tmpOpValue.getType().cast<ValueTensorType>().getSizes().vec();
+          auto tmpData = tmpOpValue.getDefiningOp<ValueTensorLiteralOp>().getValue().getValues<float>();
+          std::vector<float> dataVec;
+          if(tmpShape.size()==4){
+            int tmpChannelSize =  tmpShape[2] * tmpShape[3];
+            int tmpKernelSize = tmpShape[1] * tmpChannelSize;
+            for(int i=0;i<tmpShape[0];i++){
+              for(int j=0;j<tmpShape[1];j++){
+                bool repeatFlag= false;
+                for(size_t k=0;k<repeatKernel.size();k++){
+                  if(j==repeatKernel[k]){
+                    repeatFlag = true;
+                    break;
+                  }
+                }
+                if(!repeatFlag){
+                  int begin = i * tmpKernelSize + j * tmpChannelSize;
+                  for(int count=0;count<tmpChannelSize;count++){
+                    dataVec.push_back(tmpData[begin+count]);
+                  }
+                }
+              }
+            }
+            tmpShape[1] = mp.size();
+          }
+          else if(tmpShape.size()==1){
+            for(int i=0;i<tmpShape[0];i++){
+              bool repeatFlag= false;
+              for(size_t j=0;j<repeatKernel.size();j++){
+                if(i==repeatKernel[j]){
+                  repeatFlag = true;
+                  break;
+                }
+              }
+              if(!repeatFlag){
+                dataVec.push_back(tmpData[i]);
+              }
+            }
+            tmpShape[0] = mp.size();
+          }
+          llvm::outs() << "44444444444444444444444444\n";
+          for(auto shp:tmpShape) llvm::outs() << shp << ' ';
+          llvm::outs() << "\n";
+          llvm::outs() << "dataVecSize=" << dataVec.size() << "\n";
+          llvm::outs() << "repeatKernelSN=" << repeatKernel[0] << "\n";
+          auto resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(tmpShape),
+                                              rewriter.getF32Type());
+          auto dense = DenseElementsAttr::get(
+              RankedTensorType::get(llvm::ArrayRef(tmpShape), rewriter.getF32Type()),
+              llvm::ArrayRef(dataVec));
+          rewriter.replaceOpWithNewOp<ValueTensorLiteralOp>(tmpOp,
+                                                        resultTensorType, dense);
+        }
+        else if (ValueTensorType tensorTy =
                 tmpOp->getResult(0).getType().dyn_cast<ValueTensorType>()) {
           auto tmpShape = tensorTy.getSizes().vec();
           tmpShape[1] = conv1KernelShape[0];

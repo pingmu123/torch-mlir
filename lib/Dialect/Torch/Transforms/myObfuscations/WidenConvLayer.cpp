@@ -34,7 +34,7 @@ static void widenConvLayer(MLIRContext *context, Operation *f) {
   int plcFlag = 0;
   f->walk([&](Operation *op) {
     if (isa<AtenConvolutionOp>(op)) {
-      if(!(isa<PrimListConstructOp>(op->getUses().begin()->getOwner()))){
+      if((op->getUses().begin()!=op->getUses().end()) && !(isa<PrimListConstructOp>(op->getUses().begin()->getOwner()))){
         mp[op] = convOpNum;
         convOpNum++;
       }
@@ -58,7 +58,7 @@ static void widenConvLayer(MLIRContext *context, Operation *f) {
       it = opWorklist.begin(); // last conv or no conv can't widen, widen first convOp
     }
   }
-  if(isa<PrimListConstructOp>((*it)->getUses().begin()->getOwner())){
+  if(((*it)->getUses().begin()!=(*it)->getUses().end()) && isa<PrimListConstructOp>((*it)->getUses().begin()->getOwner())){
     llvm::outs() << "jump this widenConvLayer!\n";
     return;
   }
@@ -195,7 +195,7 @@ static void widenConvLayer(MLIRContext *context, Operation *f) {
   // widen second conv kernel, no need to widen bias
   // llvm::outs() << "77777777777777777777\n";
   auto tempConvOp = llvm::dyn_cast<AtenConvolutionOp>(*it);
-  if(isa<PrimListConstructOp>(tempConvOp->getUses().begin()->getOwner())){
+  if(tempConvOp->getUses().begin()!=tempConvOp->getUses().end() && isa<PrimListConstructOp>(tempConvOp->getUses().begin()->getOwner())){
     auto plcOp = tempConvOp->getUses().begin()->getOwner();
     auto opNum = plcOp->getNumOperands();
     for(size_t i=0;i<opNum;i++){

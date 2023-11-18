@@ -30,6 +30,7 @@ static void antiInsertConv(MLIRContext *context, Operation *f) {
   llvm::SmallVector<mlir::Operation*, 32> OpWorklist;
 
   // anti insert conv
+  llvm::outs() << "AIC start!\n";
 
   f->walk([&](mlir::Operation *op){ // all Ops
       OpWorklist.push_back(op);

@@ -63,8 +63,8 @@ vector<vector<float>> matMul(vector<vector<float>> A, vector<vector<float>> B){
 // flatten
 vector<float> flatten(vector<vector<float>> A){
     vector<float> res;
-    for(int i=0;i<A.size();i++){
-        for(int j=0;j<A[0].size();j++){
+    for(size_t i=0;i<A.size();i++){
+        for(size_t j=0;j<A[0].size();j++){
             res.push_back(A[i][j]);
         }
     }
@@ -109,6 +109,7 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
   });
 
   // anti insert linear
+  llvm::outs() << "AIL start!\n";
   vector<vector<int>> mmOpWeightShape;
   vector<vector<float>> mmOpWeightData;
   vector<vector<int>> mmOpBiasShape;
@@ -116,6 +117,7 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
   llvm::SmallVector<mlir::Operation *, 16> mmOpWorklist;
   llvm::SmallVector<mlir::Operation *, 16> mmBiasOpWorklist;
   int numOfOp=0; // mmOp + addTensorOp count
+  llvm::outs() << "1111111111111111111111111111!\n";
   for(auto it=opWorklist.begin();it!=opWorklist.end();it++){
     if(isa<AtenAddTensorOp>(*it)){
         // mmOp + addTensorOp(mmBiasOp)
@@ -123,7 +125,10 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
         auto mmOp = op->getOperand(0).getDefiningOp();
         // it is error when the first parapeter is not Op(origin input)
         // AntiInsertLinearPass should be behind of AntiInsertSkipPass
-        if(isa<AtenMmOp>(mmOp)&&isa<ValueTensorLiteralOp>(mmOp->getOperand(1).getDefiningOp())){
+        llvm::outs() << "1.1!\n";
+        // llvm::outs() << *mmOp << "\n";
+        if(mmOp!=nullptr && isa<AtenMmOp>(mmOp) && isa<ValueTensorLiteralOp>(mmOp->getOperand(1).getDefiningOp())){
+            llvm::outs() << "1.2!\n";
             numOfOp++;
             mmOpWorklist.push_back(mmOp);
             auto opWeightShape = mmOp->getOperand(1).getType().cast<ValueTensorType>().getSizes().vec();
@@ -131,6 +136,7 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
             for(auto num: opWeightShape){
                 tmp1.push_back(num); 
             }
+            llvm::outs() << "1.3!\n";
             auto opWeightData = mmOp->getOperand(1).getDefiningOp<ValueTensorLiteralOp>().getValue().getValues<float>();
             vector<float> tmp2;
             for(auto num: opWeightData) tmp2.push_back(num);
@@ -139,6 +145,7 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
 
             
             // todo: addTensorOp has three parameters
+            llvm::outs() << "1.4!\n";
             mmBiasOpWorklist.push_back(op); 
             auto opBiasShape = op->getOperand(1).getType().cast<ValueTensorType>().getSizes().vec();
             tmp1.clear();
@@ -149,8 +156,9 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
             mmOpBiasShape.push_back(tmp1);
             mmOpBiasData.push_back(tmp2);
         }
-      } // todo: only insert mmOp?
+    } // todo: only insert mmOp?
   }
+  llvm::outs() << "2222222222222222222222222!\n";
   for(int i=0;i<numOfOp;i++){
     if(mmOpWeightShape[i][0]==mmOpWeightShape[i][1]){
         vector<float> col(mmOpWeightShape[i][1], 0);
@@ -177,6 +185,7 @@ static void antiInsertLinear(MLIRContext *context, Operation *f) {
         }
     }
   }
+  llvm::outs() << "3333333333333333333333333333!\n";
   for(int i=0;i<numOfOp;i++){
     // check 
     // (xA+B)C+D = xAC + BC + D

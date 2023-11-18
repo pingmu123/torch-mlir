@@ -30,6 +30,7 @@ static void antiInsertSkip(MLIRContext *context, Operation *f) {
   llvm::SmallPtrSet<mlir::Operation *, 16> ConvOpWorklist;
 
   // anti insert skip(conv)
+  llvm::outs() << "AIK start!\n";
 
   f->walk([&](mlir::Operation *op){ // find all ConvolutionOp
     if(dyn_cast<AtenConvolutionOp>(op)){ 
@@ -62,14 +63,20 @@ static void antiInsertSkip(MLIRContext *context, Operation *f) {
     }
     if(isEqual){
       // handle the Ops related to this convOp： it is always an AddTensorOp
+      llvm::outs() << "1.1!\n";
       auto convOp_userOps = convOp->getUses(); // get OpOperand
+      if(convOp_userOps.begin()==convOp_userOps.end()){
+        return; // for Segmentation fault
+      }
       auto addTensorOp = convOp_userOps.begin()->getOwner(); // get addTensorOp
+      llvm::outs() << "1.2!\n";
 
 
       // handle the Ops related to this addTensorOp
       if(isa<AtenAddTensorOp>(addTensorOp)){
         auto addTensorOp_userOps = addTensorOp->getUses();
         auto it=addTensorOp_userOps.begin();
+        llvm::outs() << "1.3!\n";
         while (it!=addTensorOp_userOps.end()){
           auto tmpOp=it->getOwner(); // get Op 
           tmpOp->replaceUsesOfWith(tmpOp->getOperand(0), addTensorOp->getOperand(0)); // it becomes addTensorOp->getOperand(0)_userOps
@@ -77,11 +84,16 @@ static void antiInsertSkip(MLIRContext *context, Operation *f) {
           it=addTensorOp_userOps.begin(); // the next Op which use addTensorOp
 
         } // end of handle the Ops related to this addTensorOp
+
+        llvm::outs() << "1.4!\n";
       
         auto preFloat1Op = addTensorOp->getOperand(2).getDefiningOp(); // ConstantFloatOp: we can delete it directly here
         
-        addTensorOp->erase();
-        auto usersOp = preFloat1Op->getUses();
+        auto usersOp = addTensorOp->getUses();
+        if(usersOp.begin()==usersOp.end()){
+          addTensorOp->erase();
+        }
+        usersOp = preFloat1Op->getUses();
         if(usersOp.begin()==usersOp.end()){
           preFloat1Op->erase();
         }
@@ -89,7 +101,10 @@ static void antiInsertSkip(MLIRContext *context, Operation *f) {
         auto skipConvOpNum1Op=opNum_1.getDefiningOp();
         auto skipConvOpNum2Op=opNum_2.getDefiningOp();
 
-        convOp->erase();
+        usersOp = convOp->getUses();
+        if(usersOp.begin()==usersOp.end()){
+          convOp->erase();
+        }
         usersOp = skipConvOpNum1Op->getUses();
         if(usersOp.begin()==usersOp.end()){
           skipConvOpNum1Op->erase();
