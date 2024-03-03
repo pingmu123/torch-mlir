@@ -56,7 +56,7 @@ static void antiInsertSkip(MLIRContext *context, Operation *f) {
     }
     // TODO： bias parameter is false? always not, it will cause error while open.
     for (size_t i = 0; i < opNum_2Data.size(); ++i) {
-      if (opNum_2Data[i] != 0) {
+      if (abs(opNum_2Data[i])>0.0000001) {
         isEqual = false;
         break;
       }

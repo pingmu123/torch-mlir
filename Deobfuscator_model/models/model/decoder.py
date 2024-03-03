@@ -10,7 +10,8 @@ class Decoder(nn.Module):
         self.emb = transformerEmbedding(d_model=d_model,
                                         drop_prob=drop_prob,
                                         max_len=max_len,
-                                        device=device)
+                                        device=device,
+                                        ty = 'tgt_embedding')
 
         self.layers = nn.ModuleList([decoderLayer(d_model=d_model,
                                                   ffn_hidden=ffn_hidden,
@@ -24,8 +25,14 @@ class Decoder(nn.Module):
         tgt = self.emb(tgt)
 
         for layer in self.layers:
+            # if not self.training:
+            #     print('begin====tgt in n_layers: ', tgt[:, 0:8, 5:15])
             tgt = layer(tgt, enc_src, tgt_mask, src_mask)
+            # if not self.training:
+            #     print('end====tgt in n_layers: ', tgt[:, 0:8, 5:15])
 
-        # pass to LM head
-        output = self.linear(tgt) 
+        # pass to LM head ?
+
+        output = self.linear(tgt)
+        # print(output[0:20])
         return output

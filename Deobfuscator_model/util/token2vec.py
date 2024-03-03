@@ -15,6 +15,7 @@ from conf import *
 import csv
 import copy # you'd better to use deep copy when you want copy a list 
 
+csv.field_size_limit(2**30) # default: 131072
 csv_file_path = "/home/pingmu123/torch-mlir/Deobfuscator_model/dataSet/"
 csv_file1 = csv_file_path + "data.csv"
 csv_file2 = csv_file_path + "token.csv"
@@ -28,7 +29,7 @@ csv_file.close()
 
 ob_model_vocab_size = ob_model_vocab_size # 64
 
-def get_ob_model_all_token() -> set:
+def get_ob_model_all_token() -> list:
     tokens = set(())
     csv_reader = csv.reader(open(csv_file2, encoding='utf-8'))
     next(csv_reader) # jump headLine
@@ -41,9 +42,23 @@ def get_ob_model_all_token() -> set:
         for token in row[0]:
             if len(token)>0 and ((token[0]>='a' and token[0]<='z') or (token[0]>='A' and token[0]<='Z')):
                 tokens.add(token)
-    return tokens
 
-def get_origin_model_all_token() -> set:
+    # set中元素顺序是乱的
+    words = []
+    csv_reader = csv.reader(open(csv_file2, encoding='utf-8'))
+    next(csv_reader) # jump headLine
+    for row in csv_reader:
+        row[0] = row[0].replace('[','') 
+        row[0] = row[0].replace(']','')
+        row[0] = row[0].replace("'",'')
+        row[0] = row[0].replace(' ','') # delete space
+        row[0] = row[0].split(',')
+        for token in row[0]:
+            if token in tokens and token not in words:
+                words.append(token)
+    return words
+
+def get_origin_model_all_token() -> list:
     tokens = set(())
     csv_reader = csv.reader(open(csv_file2, encoding='utf-8'))
     next(csv_reader) # jump headLine
@@ -55,13 +70,24 @@ def get_origin_model_all_token() -> set:
         row[1] = row[1].split(',')
         for token in row[1]:
             tokens.add(token)
-    return tokens
+    words = []
+    csv_reader = csv.reader(open(csv_file2, encoding='utf-8'))
+    next(csv_reader) # jump headLine
+    for row in csv_reader:
+        row[1] = row[1].replace('[','') 
+        row[1] = row[1].replace(']','')
+        row[1] = row[1].replace("'",'')
+        row[1] = row[1].replace(' ','') # delete space
+        row[1] = row[1].split(',')
+        for token in row[1]:
+            if token in tokens and token not in words:
+                words.append(token)
+    return words
 
-def build_ob_model_vocab(st:set)->dict:
+def build_ob_model_vocab(l: list)->dict:
     token2vec={}
     # one-hot embedding
-    st.add('torch.preOp.parameters')
-    l = list(st)
+    l.append('torch.preOp.parameters')
     arr_len = len(l)
     for i in range(0, arr_len):
         arr = [0 for _ in range(ob_model_vocab_size)]
@@ -70,11 +96,10 @@ def build_ob_model_vocab(st:set)->dict:
         token2vec[l[i]] = tup
     return token2vec
 
-def build_origin_model_vocab(st:set)->dict:
+def build_origin_model_vocab(l: list)->dict:
     token2vec={}
     # one-hot embedding
-    l = list(st)
-    arr_len = len(l) #
+    arr_len = len(l)
     if(arr_len > origin_model_vocab_size):
         print('arr_len > origin_model_vocab_size: one_hot embedding failed!')
         exit()
@@ -91,17 +116,16 @@ def get_vec2token(token2vec: dict) -> dict:
         vec2token[value] = key
     return vec2token
 
-def build_origin_model_vocab_idx(st:set)->dict: # for computing loss
+def build_origin_model_vocab_idx(l: list)->dict: # for computing loss
     stoi={}
-    l = list(st)
     arr_len = len(l) #
     for i in range(0, arr_len):
         stoi[l[i]] = i
     return stoi
 
-def get_itos(token2vec: dict) -> dict:
+def get_itos(d: dict) -> dict:
     itos={}
-    for key, value in token2vec.items():
+    for key, value in d.items():
         itos[value] = key
     return itos
 
@@ -113,14 +137,14 @@ ob_model_vec2token = get_vec2token(ob_model_token2vec)
 origin_model_token = get_origin_model_all_token()
 origin_model_token2vec = build_origin_model_vocab(origin_model_token)
 origin_model_token2idx = build_origin_model_vocab_idx(origin_model_token)
+origin_model_idx2token = get_itos(origin_model_token2idx)
 origin_model_vec2token = get_vec2token(origin_model_token2vec)
-
 origin_model_token2vec_size = len(origin_model_token2vec)
 
 inf = inf
-INT_MAX = 2147483647
+INT_MAX = max_len_tgt
 topo_pad = -1
-parameters_pad = -inf
+parameters_pad = 0
 shape_pad = 1
 
 def hex2float(s:str) -> list:
@@ -176,7 +200,7 @@ for row in csv_reader:
     op = []
     # ob_model: one op, one vector
     for token in row[0]:
-        if(token == 'EOVector'):
+        if(token == 'EOOperation'):
             op.append(token)
             # processing current Op
             if op[0] == 'return':  # 'return' Op
@@ -186,8 +210,8 @@ for row in csv_reader:
                 while len(topo) < d_model_topo_size:
                     topo.append(topo_pad)
                 shape=[]
-                j = 3 # return Op:  return %xxx torch.vtensor shape_info EOVector
-                while op[j] != 'EOVector':
+                j = 3 # return Op:  return %xxx torch.vtensor shape_info EOOperation
+                while op[j] != 'EOOperation':
                     shape.append(int(op[j]))
                     j = j + 1
                 while len(shape) < d_model_shape_size:
@@ -210,7 +234,7 @@ for row in csv_reader:
                     parameters = [parameters_pad for _ in range(d_model_params_size)]
                     shape = []
                     j = 2
-                    while op[j] != 'EOVector':
+                    while op[j] != 'EOOperation':
                         shape.append(int(op[j]))
                         j = j + 1
                     while len(shape) < d_model_shape_size:
@@ -238,7 +262,7 @@ for row in csv_reader:
                         parameters = []
                         shape = []
                         j = 3 # point to 'torch.vtensor' while '0x...'
-                        # SN, torch.vtensor.literal, '0x...', torch.vtensor, shape_info, EOVector
+                        # SN, torch.vtensor.literal, '0x...', torch.vtensor, shape_info, EOOperation
                         if op[2].find('0x') == -1:
                             j = 2
                             while op[j] != 'torch.vtensor': # final point to 'torch.vtensor'
@@ -249,7 +273,7 @@ for row in csv_reader:
 
                         # get shape then check： Are all elements same?
                         j = j + 1 # jump 'torch.vtensor'
-                        while op[j] != 'EOVector':
+                        while op[j] != 'EOOperation':
                             shape.append(int(op[j]))
                             j = j + 1
                         total_elements = 1
@@ -315,7 +339,7 @@ for row in csv_reader:
                         topo = []
                         if op[2][0]>='0' and op[2][0] <='9':
                             j = 2
-                            while op[j] != 'torch.vtensor' and op[j] != 'EOVector':
+                            while op[j] != 'torch.vtensor' and op[j] != 'EOOperation':
                                 topo.append(int(op[j]))
                                 j = j + 1
                         while len(topo) < d_model_topo_size:
@@ -342,7 +366,7 @@ for row in csv_reader:
                         parameters = [parameters_pad for _ in range(d_model_params_size)]
                         j = j + 1 # jump 'torch.vtensor'
                         shape = []
-                        while op[j] != 'EOVector':
+                        while op[j] != 'EOOperation':
                             shape.append(int(op[j]))
                             j = j + 1
                         while len(shape) < d_model_shape_size:

@@ -71,7 +71,7 @@ static void dummyAddition(MLIRContext *context, Operation *f) {
       for(auto i=0;i<shape.size();i++){
         zeroTensorSize*=shape[i];
       }
-      std::vector<float> zeroVec(zeroTensorSize, 0.0);
+      std::vector<float> zeroVec(zeroTensorSize, 0.0 + 0.000000002);
       auto resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(shape), rewriter.getF32Type());
       auto dense = DenseElementsAttr::get(
       RankedTensorType::get(llvm::ArrayRef(shape), rewriter.getF32Type()),

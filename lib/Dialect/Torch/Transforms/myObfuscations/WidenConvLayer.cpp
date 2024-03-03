@@ -59,7 +59,7 @@ static void widenConvLayer(MLIRContext *context, Operation *f) {
     }
   }
   if(((*it)->getUses().begin()!=(*it)->getUses().end()) && isa<PrimListConstructOp>((*it)->getUses().begin()->getOwner())){
-    llvm::outs() << "jump this widenConvLayer!\n";
+    // llvm::outs() << "jump this widenConvLayer!\n";
     return;
   }
   AtenConvolutionOp convOp = llvm::dyn_cast<AtenConvolutionOp>(*it);
@@ -81,7 +81,7 @@ static void widenConvLayer(MLIRContext *context, Operation *f) {
   // skip + widenlayer would cause error
   std::vector<float> zeroKernelVec(kernelVec.size(), 0);
   if(kernelVec==zeroKernelVec){
-    llvm::outs() << "there is skipping of convOp, jump this widenConvLayer!\n";
+    // llvm::outs() << "there is skipping of convOp, jump this widenConvLayer!\n";
     return;
   }
 

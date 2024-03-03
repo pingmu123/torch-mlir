@@ -41,7 +41,7 @@ static void insertConv(MLIRContext *context, Operation *f, int number) {
   });
 
   if (opWorklist.empty()) {
-    llvm::errs() << "Not run InsertConv\n";
+    // llvm::errs() << "Not run InsertConv\n";
     return;
   }
 
@@ -57,7 +57,7 @@ static void insertConv(MLIRContext *context, Operation *f, int number) {
     std::vector<long> rstShape =
         activeRst.getType().cast<ValueTensorType>().getSizes().vec();
     if(rstShape.size()!=4){ // only process Ops which size is 4
-      llvm::outs() << "rstShape!=4, jump this InsertConvOp! \n";
+      // llvm::outs() << "rstShape!=4, jump this InsertConvOp! \n";
       continue;
     }
     rewriter.setInsertionPoint(originOp);
@@ -86,15 +86,15 @@ static void insertConv(MLIRContext *context, Operation *f, int number) {
     int kernelSz = (1 + std::rand() % 2) * 2 + 1; // 3 or 5
     shape[0] = ChannelSz;
     if(shape[2]<kernelSz || shape[3]<kernelSz){
-      llvm::outs() << "kernelSize > inputSize, jump this InsertConv! \n";
+      // llvm::outs() << "kernelSize > inputSize, jump this InsertConv! \n";
       return;
     }
     shape[2] = shape[3] = kernelSz;
     std::vector<float> unitWeightVec(
-        ChannelSz * ChannelSz * kernelSz * kernelSz, 0);
+        ChannelSz * ChannelSz * kernelSz * kernelSz, 0.000000001);
     for (int i = 0; i < ChannelSz; i++) {
       unitWeightVec[((i * ChannelSz + i) * kernelSz + kernelSz / 2) * kernelSz +
-                    kernelSz / 2] = 1;
+                    kernelSz / 2] = 1.000000001;
     }
     auto resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(shape),
                                                  rewriter.getF32Type());
@@ -106,13 +106,11 @@ static void insertConv(MLIRContext *context, Operation *f, int number) {
     // create zero bias
     shape.erase(shape.begin() + 1, shape.end());
     std::vector<float> zeroBiasVec(shape[0], 0);
-    llvm::outs() << "1111111111111111111\n";
     resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(shape),
                                             rewriter.getF32Type());
     dense = DenseElementsAttr::get(
         RankedTensorType::get(llvm::ArrayRef(shape), rewriter.getF32Type()),
         llvm::ArrayRef(zeroBiasVec));
-    llvm::outs() << "22222222222222222\n";
     Value zeroBias =
         rewriter.create<ValueTensorLiteralOp>(loc, resultTensorType, dense);
     // create other oprands for conv

@@ -220,7 +220,8 @@ static void antiBranchLayer(MLIRContext *context, Operation *f) {
   });
   for(auto it_4=OpWorklist.begin();it_4!=OpWorklist.end();it_4++){
     auto op = *(it_4);
-    if(dyn_cast<ConstantIntOp>(op)){
+    // if(dyn_cast<ConstantIntOp>(op)){
+    if(isa<ConstantIntOp, PrimListConstructOp, ValueTensorLiteralOp>(op)){
         auto usersOp = op->getUses();
         if(usersOp.begin()==usersOp.end()){
             op->erase();

@@ -52,7 +52,7 @@ static void antiDummyAddition(MLIRContext *context, Operation *f) {
     bool isEqual = true;
     if(opNum_2Data!=0.0){
         for (size_t i = 0; i < opNum_1Data.size(); ++i) {
-          if (opNum_1Data[i]!=0.0) {
+          if (abs(opNum_1Data[i])>0.0000001) {
             isEqual = false;
             break;
         }

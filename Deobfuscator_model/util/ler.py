@@ -31,5 +31,6 @@ def get_ler(tgt_idx, src_idx)->float:
                 dp[i][j] = dp[i-1][j-1] # not increase
             else:
                 tmp = min(dp[i-1][j], dp[i][j-1])
-                dp[i][j] = min(tmp, dp[i-1][j-1])
-    return dp[m-1][j-1]
+                dp[i][j] = min(tmp, dp[i-1][j-1]) + 1
+
+    return dp[m-1][n-1]/len(src_idx)

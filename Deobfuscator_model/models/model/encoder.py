@@ -5,14 +5,14 @@ from models.embedding.transformer_embedding import transformerEmbedding
 
 
 class Encoder(nn.Module):
-
-    # todo: transformerEmbedding: vocab_size and enc_voc_size
+    
     def __init__(self, max_len, d_model, ffn_hidden, n_head, n_layers, drop_prob, device):
         super().__init__()
         self.emb = transformerEmbedding(d_model=d_model,
                                         max_len=max_len,
                                         drop_prob=drop_prob,
-                                        device=device)
+                                        device=device,
+                                        ty = 'src_embedding')
 
         self.layers = nn.ModuleList([encoderLayer(d_model=d_model,
                                                   ffn_hidden=ffn_hidden,

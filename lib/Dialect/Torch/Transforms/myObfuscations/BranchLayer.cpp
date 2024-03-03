@@ -38,7 +38,7 @@ static void branchLayer(MLIRContext *context, Operation *f) {
     }
   });
   if(convOpWorklist.empty()){
-    llvm::errs() << "This NN model doesn't have ConvOp!\n";
+    // llvm::errs() << "This NN model doesn't have ConvOp!\n";
     return;
   }
 
@@ -51,7 +51,7 @@ static void branchLayer(MLIRContext *context, Operation *f) {
   // branch layer
   auto it = convOp->getUses().begin();
   if(isa<PrimListConstructOp>(it->getOwner())){
-    llvm::outs() << "jump this convOp(it has related to some branch Op)!\n";
+    // llvm::outs() << "jump this convOp(it has related to some branch Op)!\n";
     return;
   }
 
@@ -68,7 +68,7 @@ static void branchLayer(MLIRContext *context, Operation *f) {
   int kernelSize = convKernelShape[1] * convKernelShape[2] * convKernelShape[3];
   int subKernelNum = 0;
   if(kernelNum==1){
-    llvm::outs() << "There is only one kernel, return directly. \n";
+    // llvm::outs() << "There is only one kernel, return directly. \n";
     return;
   }
   while(kernelNum){

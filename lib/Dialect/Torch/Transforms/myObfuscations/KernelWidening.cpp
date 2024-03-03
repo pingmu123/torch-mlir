@@ -36,7 +36,7 @@ static void kernelWidening(MLIRContext *context, Operation *f) {
     }
   });
   if (convOpWorklist.empty()) {
-    llvm::errs() << "No convKernel to pad!\n";
+    // llvm::errs() << "No convKernel to pad!\n";
     return;
   }
   for(auto it=convOpWorklist.begin();it!=convOpWorklist.end();it++){

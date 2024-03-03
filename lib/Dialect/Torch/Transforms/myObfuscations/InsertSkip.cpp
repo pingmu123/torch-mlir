@@ -38,13 +38,13 @@ static void insertSkip(MLIRContext *context, Operation *f) {
   // auto it = opWorklist.begin();
   // it++;
   // random
+  if(opWorklist.size()==0) return;
   srand(unsigned(time(0)));
   auto it = (std::next(opWorklist.begin(), std::rand() % opWorklist.size()));
   AtenConvolutionOp convOp = llvm::dyn_cast<AtenConvolutionOp>(*it);
   IRRewriter rewriter(context);
   rewriter.setInsertionPoint(convOp);
   Location loc = convOp.getLoc();
-
   // create a new conv with zero kernel and bias, to make sure output is the
   // same as input
   Value oldKernel = convOp.getOperand(1);
@@ -54,20 +54,20 @@ static void insertSkip(MLIRContext *context, Operation *f) {
   auto shape = oldKernel.getType().cast<ValueTensorType>().getSizes().vec();
   auto inputShape = convOp.getOperand(0).getType().cast<ValueTensorType>().getSizes().vec();
   shape[0] = inputShape[1];  
-  shape[1] = inputShape[1]; 
+  shape[1] = inputShape[1];
   auto convPadding = convOp.getOperand(4);
   auto convPaddingDataOp = convPadding.getDefiningOp<PrimListConstructOp>();
   int hPadding = convPaddingDataOp.getOperand(0).getDefiningOp<ConstantIntOp>().getValue().getSExtValue();
   int wPadding = convPaddingDataOp.getOperand(1).getDefiningOp<ConstantIntOp>().getValue().getSExtValue();
-  llvm::outs() <<"h and w:" << hPadding << ' ' << wPadding << "\n";
+  // llvm::outs() <<"h and w:" << hPadding << ' ' << wPadding << "\n";
   shape[2] = 1 + 2 * hPadding;
   shape[3] = 1 + 2 * wPadding; // to make sure output is the same as input
   //auto inputShape = convOp.getOperand(0).getType().cast<ValueTensorType>().getSizes().vec();
   if(shape[2]>inputShape[2] || shape[3]>inputShape[3]){
-    llvm::outs() << " kernel size > input size, jump this InsertSkip! \n";
+    // llvm::outs() << " kernel size > input size, jump this InsertSkip! \n";
     return;
   }
-  std::vector<float> zeroKernelVec(shape[0] * shape[1] * shape[2] * shape[3], 0);
+  std::vector<float> zeroKernelVec(shape[0] * shape[1] * shape[2] * shape[3], 0.000000001);
   auto resultTensorType = ValueTensorType::get(context, llvm::ArrayRef(shape),
                                                rewriter.getF32Type());
   auto dense = DenseElementsAttr::get(

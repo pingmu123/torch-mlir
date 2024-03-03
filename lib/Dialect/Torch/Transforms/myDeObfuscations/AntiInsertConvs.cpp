@@ -75,13 +75,13 @@ static void antiInsertConv(MLIRContext *context, Operation *f) {
                     // if(j!=i || k != (hPadding * convKernelShape[3] + wPadding)){
                     // Note: j!=i， inputChannel-wise
                     if(j!=i || k != (convKernelShape[2]/2*convKernelShape[3] + convKernelShape[3]/2)){
-                        if(convKernelData[base2+k]!=0.0){
+                        if(abs(convKernelData[base2+k])>0.0000001){
                             isUnitConv = false;
                             break;
                         }
                     }
                     else{
-                        if(convKernelData[base2+k]!=1.0){
+                        if(abs(convKernelData[base2+k])>0.0000001){
                             isUnitConv = false;
                             break;
                         }

@@ -8,9 +8,6 @@ import torch.nn.functional as F
 import torch_mlir
 from torch_mlir_e2e_test.linalg_on_tensors_backends import refbackend
 
-# import torch.utils.model_zoo as model_zoo
-
-
 __all__ = ["AlexNet", "alexnet"]
 
 

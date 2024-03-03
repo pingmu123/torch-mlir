@@ -12,10 +12,14 @@ from models.model.decoder import Decoder
 
 class Transformer(nn.Module):
 
-    def __init__(self, tgt_voc_size, d_model, n_head, max_len_src, max_len_tgt, ffn_hidden, n_layers, drop_prob, device):
+    def __init__(self, padding_idx, beginning_idx, ending_idx, tgt_voc_size, d_model, n_head, max_len_src, max_len_tgt, ffn_hidden, n_layers, drop_prob, device):
         super().__init__()
         
-        # self.tgt_bos_idx = tgt_bos_idx # tgt 开始标记: origin_model_token_padding
+        self.padding_idx = padding_idx
+        self.beginnging_idx = beginning_idx
+        self.ending_idx = ending_idx
+        self.max_len_src = max_len_src
+        self.max_len_tgt = max_len_tgt
 
         self.device = device
         self.encoder = Encoder(d_model=d_model,
@@ -35,51 +39,63 @@ class Transformer(nn.Module):
                                device=device)
         
     def make_src_mask(self, src):
-        # difference: tokenEmbedding had finished, so src's shape: [batch, seq_len, d_model]
-
-        # src_mask = (src != self.src_pad_idx) # get src_mask tensor: [True, ..., False, ..., False]
-        shape = src.shape
-        mask_shape = (shape[0], max_len_src)
-        src_mask = np.ones(mask_shape)
-        src_mask[:, shape[1]:max_len_src] = 0
-        src_mask = torch.tensor(src_mask)
-        src_mask = (src_mask != 0)
-       
-        src_mask = src_mask.unsqueeze(1).unsqueeze(2) # src: [2, 7]  score:[2, 5, 7, 7]  -> src_mask: [2, 1, 1, 7]
-        # if mask is not None:
-        #   score = score.masked_fill(mask == 0, -10000)  
-        #   mask 7 and score 7*7： mask=[1, 1, 1, 1, 1, 0, 0]  score后2列全为-10000
+        
+        # get src_mask tensor: [True, ..., False, ..., False] (while batch_size == 1)
+        src_mask = (src != self.padding_idx) 
+        src_mask = src_mask.unsqueeze(1).unsqueeze(2) # for score computing
+    
         return src_mask
     
     def make_tgt_mask(self, tgt):
         # difference of src and tgt
         
-        # tgt_pad_mask = (tgt != self.tgt_pad_idx)
-        shape = tgt.shape
-        mask_shape = (shape[0], max_len_tgt)
-        tgt_pad_mask = np.ones(mask_shape)
-        tgt_pad_mask[:, shape[1]:max_len_tgt] = 0
-        tgt_pad_mask = torch.tensor(tgt_pad_mask)
-        tgt_pad_mask = (tgt_pad_mask != 0)
+        tgt_pad_mask = (tgt != self.padding_idx)
         tgt_pad_mask = tgt_pad_mask.unsqueeze(1).unsqueeze(3)
         
-        # tgt_len = tgt.shape[1]
-        tgt_sub_mask = torch.tril(torch.ones(max_len_tgt, max_len_tgt)).type(torch.ByteTensor).to(self.device)
+        tgt_sub_mask = torch.tril(torch.ones(self.max_len_tgt, self.max_len_tgt)).type(torch.ByteTensor).to(self.device)
+        
         tgt_mask = tgt_pad_mask & tgt_sub_mask
+
         return tgt_mask
         
     def forward(self, src, tgt): 
         # src and tgt: [batch, max_len](max_len = seq_len + pad_len) 
         # ex: 
         #   wonna take you baby take me higher pad pad pad
-        #   gonna tiga take me take higher pad pad pad
+        #   gonna tiga take me take me higher pad pad pad
+
+        if(src.shape[1] > self.max_len_src):
+            print('src_length:', src.shape[1])
+            print("length of input > max_len_src, exit!")
+            exit()
+        
         src_mask = self.make_src_mask(src)
         tgt_mask = self.make_tgt_mask(tgt)
-        if(src.shape[1] > max_len_src):
-            print("length of input > max_len, exit!")
-            exit()
+
         enc_src = self.encoder(src, src_mask)
-        output = self.decoder(tgt, enc_src, tgt_mask, src_mask)
+
+        # Are train and inference different?
+        if self.training:
+            output = self.decoder(tgt, enc_src, tgt_mask, src_mask)
+        else:
+            print('inference begin')
+            shape = (batch_size, self.max_len_tgt)
+            tgt_eval = torch.zeros(shape, dtype=torch.int64)
+            tgt_eval[:, 0:1] = self.beginnging_idx
+            tgt_eval[:, 1:] = self.padding_idx
+            tgt_eval_mask = torch.zeros(shape)
+            tgt_eval_mask[:, 0:1] = 1
+            tgt_eval_mask = (tgt_eval_mask != 0)
+            tgt_eval_mask = tgt_eval_mask.unsqueeze(1).unsqueeze(2)
+            for j in range(1, self.max_len_tgt):
+                output = self.decoder(tgt_eval, enc_src, tgt_eval_mask, src_mask)
+                for k in range(0, batch_size):
+                    temp_tgt_eval = output[k].max(dim=-1)[1] # temp_tgt_eval: [length, ]
+                    tgt_eval[k][j] = temp_tgt_eval[j]
+                    
+                tgt_eval_mask[:, :, :, j:j+1] = True
+                # todo: 遇到'<EOS>'时可停止
+            print('inference end')
         return output
     
 

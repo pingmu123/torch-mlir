@@ -37,15 +37,15 @@ class decoderLayer(nn.Module):
             x = self.enc_dec_attention(q=x, k=enc, v=enc, mask=src_mask) # Note params
            
             # 4. add and norm
-            x = self.dropout1(x)
-            x = self.norm1(_x + x)
+            x = self.dropout2(x)
+            x = self.norm2(_x + x)
 
         # 5. positionwise feed forward network
         _x = x
         x = self.ffn(x)
 
         # 6. add and norm
-        x = self.dropout1(x)
-        x = self.norm1(_x + x)
+        x = self.dropout3(x)
+        x = self.norm3(_x + x)
 
         return x

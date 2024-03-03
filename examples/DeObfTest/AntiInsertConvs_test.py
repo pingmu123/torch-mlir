@@ -43,7 +43,7 @@ print(module.operation.get_asm(large_elements_limit=10))
 
 
 # begin
-for i in range (0,2):
+for i in range(0, 2):
     print("================")
     print("after InsertConvs pass")
     print("================")

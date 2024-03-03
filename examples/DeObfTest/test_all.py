@@ -7,6 +7,9 @@ import torch_mlir
 from torch_mlir_e2e_test.linalg_on_tensors_backends import refbackend
 
 
+# TODO: some times ADA and AIC are in dead loop
+
+
 class LeNet5(nn.Module):
     def __init__(self):
         super(LeNet5, self).__init__()
@@ -55,12 +58,12 @@ print(
 )
 
 Obfuscation = ["Obfuscation Passes:"]
-passes = [1] # widenLayer is complex， so we would run it at first. 
+passes = [1]  # widenLayer is complex， so we would run it at first.
 np.random.seed(int(time.time()))
 randNum = np.random.randint(0, 8)
 for i in range(0, 5):  # 5 times
     while randNum % 8:
-        if(randNum!=1):
+        if randNum != 1:
             passes.append(randNum)
         randNum = np.random.randint(0, 8)
     randNum = np.random.randint(0, 8)  # for 'for'
